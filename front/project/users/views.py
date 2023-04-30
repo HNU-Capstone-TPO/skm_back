@@ -181,19 +181,26 @@ def createform(request):
 
     # return JsonResponse({'users': data}) 나중에 json 값으로 바꿔서 프론트에 보내야함
     return render(request, 'folder/searchreal.html', {'users': data})
-'''
+
 def create_nodes_from_csv(csv_file):
-    df = pd.read_csv(csv_file)
+    #df = pd.read_csv(csv_file, encoding='ISO-8859-1', header=None) > 일반 정수값일때.
+    df = pd.read_csv(csv_file, encoding='euc-kr', header=None)
     driver = GraphDatabase.driver("bolt://localhost:7687", auth=("neo4j", "12345678"))
 
     with driver.session() as session:
-        for index, row in df.iterrows():
-            # 노드를 생성하는 쿼리 실행
-            query = "CREATE (n:Node {num: $num})"
-            params = {"num": int(row[0])}
-            session.run(query, params=params)
+        for row in df.iterrows():
+            # 노드가 이미 존재하는지 확인하는 쿼리 실행
+            query = "MATCH (n:Node {num: $num}) RETURN n"
+            params = {"num": str(row[1])} # params = {"num": int(row[1].iloc[0])} 권장. int일땐. 또는, int로 강제 형변환.
+            result = session.run(query, params)
+            
+            # 노드가 존재하지 않으면 노드 생성 쿼리 실행
+            if not result.single():
+                query = "CREATE (n:Node {num: $num})"
+                params = {"num": str(row[1])}
+                session.run(query, params)
     driver.close()
-'''
+
     
 def other(request):
 
