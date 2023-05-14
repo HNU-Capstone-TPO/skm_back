@@ -1,36 +1,38 @@
 import {useState} from 'react'
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
-import { Link } from 'react-router-dom';
+import { useContext } from "react";
+import { SaveContext } from "../../contexts/SaveContext";
 
 
-const Input = ({getTags}) => {
+const Input = ({getTags, onSubmit}) => {
     const [input, setInput] = useState('');
     const [start, setStart] = useState(0);
+    const { getSave } = useContext(SaveContext);
     var newTag = null;
 
-    const [items, setItems] = useState([]);
-
-    const handleChange = (event, index) => {
-    const newItems = [...items];
-    newItems[index] = event.target.value;
-    setItems(newItems);
-    };
-
     
-
-    const handleOnKeyPress = (e) => {
-        if ((e.key === "Enter" || e.key === " ")) {
-
-          console.log("before:"+start);
-          newTag = input.substr(start, input.length).trim();
-          if(newTag===""){
-            return;
-          }
-          getTags(newTag);
-          setStart(input.length);
+    const handleOnKeyPress = async (e, callback) => {
+      if (e.key === "Enter" || e.key === " ") {
+        console.log("before:" + start);
+        newTag = input.substr(start, input.length).trim();
+        if (newTag === "") {
+          return;
         }
-      };
+        await getTags(newTag);
+        setStart(input.length);
+      }
+    };
+      
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      onSubmit();
+      getSave();
+      /*await handleOnKeyPress({ key: " " }, () => {
+        onSubmit();
+      });*/
+    };
+    
     return (
         <div className="textfield-wrapper">
             <TextField
@@ -40,15 +42,15 @@ const Input = ({getTags}) => {
                 rows={20}
                 placeholder="입력"
                 onChange={(e)=>setInput(e.target.value)}
-                onKeyDown={handleOnKeyPress}
+                onKeyDown={(e) => handleOnKeyPress(e, e.target.value)}
             />
-                < Link to="/result">
-                    <Button variant="contained">
+                
+                    <Button variant="contained" onClick={handleSubmit}>
                     입력
                     </Button>
-                </Link>
+               
+              
       </div>
     )
 }
 export default Input;
-

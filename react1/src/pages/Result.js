@@ -5,10 +5,13 @@ import SelectedList from "../components/Result/SelectedList";
 import Styling from "../components/Result/Styling";
 import './Result.css';
 import { useState } from "react";
+import { useLocation } from 'react-router-dom';
+
 const Result = () => {
-    const [selectedProducts, setSelectedProducts] = useState([null, null, null, null]);
-
-
+    const [selectedProducts, setSelectedProducts] = useState([null, null, null, null, null, null]);
+    
+    const location = useLocation();
+    const users = location.state.users;
     return (
         
         <div className="page-content">
@@ -18,7 +21,7 @@ const Result = () => {
         </div>
     */}
         <div className="center-section">
-            <Styling setSelectedProducts={setSelectedProducts}/>
+            <Styling users={users} setSelectedProducts={setSelectedProducts}/>
         </div>
         {/*
         <div className="right-section">

@@ -69,7 +69,6 @@ const SidebarItem = styled(Link)`
   text-decoration: none;
   white-space: nowrap;
   display: inline-block;
-
   &:hover {
     background-color: rgba(0, 0, 0, 0.1);
     border-radius: 5px;

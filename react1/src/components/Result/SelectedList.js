@@ -1,7 +1,7 @@
 import Box from '@mui/material/Box';
 
 const SelectedList = ({ selectedProducts }) => {
-  const category = ['hat', 'top', 'bottom', 'shoes'];
+  const category = ['상의', '하의', '신발', '모자', '아우터', '부위테스트'];
     return(
        
       <div>
@@ -15,7 +15,8 @@ const SelectedList = ({ selectedProducts }) => {
         {selectedProducts.map((product, index) =>
           product ? (
             <div key={index}>
-                Selected {category[index]}: {product.title}
+                Selected {category[index]}: {product.name}
+                Price: {product.price}
             </div>
           ) : null
         )}

@@ -2,6 +2,8 @@
 
 front/project/projcet/settings.py DATABASES update
 
+views.py neo4j connect line244 driver change
+
 neo4j project start
 
 # Enter the Virtual Environment
@@ -32,3 +34,7 @@ Open http://localhost:3000 to view it in your browser.
 ```
 yarn start
 ```
+
+
+#  4.26ver
+Add Filter / neo4j connect / react - django interlock

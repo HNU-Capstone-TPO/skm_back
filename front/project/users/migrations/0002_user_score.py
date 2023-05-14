@@ -5,7 +5,7 @@ import csv, os
 
 def add_users(apps, schema_editor):
     User = apps.get_model('users', 'User')
-    csv_file = "C:/Users/sin15/OneDrive/바탕 화면/cl_data.csv"#os.path.expanduser("~/Desktop/cl_data.csv")
+    csv_file = "C:/Users/sin15/OneDrive/바탕 화면/r_data.csv"#os.path.expanduser("~/Desktop/cl_data.csv")
     with open(csv_file, 'r') as f:
         reader = csv.reader(f)
         for row in reader:
@@ -14,18 +14,20 @@ def add_users(apps, schema_editor):
                 name=row[1],
                 rink=row[2],
                 image = row[3],
-                gender = row[4].split(','),
-                color = row[5].split(','),
-                part=row[6],
-                season=row[7].split(','),
-                brand=row[8],
-                price=row[9],
-                tag=row[10].split(','),
-                youtube=row[11],
-                score=row[12]
+                modelimage = row[4],
+                gender = row[5].split(','),
+                color = row[6].split(','),
+                part=row[7],
+                season=row[8].split(','),
+                brand=row[9].split(','),
+                price=row[10],
+                tag=row[11].split(','),
+                youtube=row[12],
+                blog = row[13],
+                score=row[14]
             )
             user.full_clean() # 데이터 유효성 검사
-            user.save()  
+            user.save()         
   
 class Migration(migrations.Migration):
 
@@ -41,3 +43,4 @@ class Migration(migrations.Migration):
         ),
         migrations.RunPython(add_users),
     ]
+

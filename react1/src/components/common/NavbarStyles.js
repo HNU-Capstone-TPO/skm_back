@@ -26,7 +26,6 @@ export const NavItem = styled(NavLink)`
   font-size: 1rem;
   font-weight: bold;
   color: #fff;
-
   &.active {
     color: #fff;
   }
