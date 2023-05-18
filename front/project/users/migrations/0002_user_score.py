@@ -24,7 +24,9 @@ def add_users(apps, schema_editor):
                 tag=row[11].split(','),
                 youtube=row[12],
                 blog = row[13],
-                score=row[14]
+                y_name = row[14],
+                b_name = row[15],
+                score=row[16]
             )
             user.full_clean() # 데이터 유효성 검사
             user.save()         

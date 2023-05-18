@@ -20,4 +20,6 @@ class User(models.Model):
     tag = ArrayField(models.CharField(max_length=100), blank=True)
     youtube = models.URLField(max_length=1024, blank=True)
     blog = models.URLField(max_length=1024, blank=True)
+    y_name = models.CharField(max_length=255, blank=True)
+    b_name = models.CharField(max_length=255, blank=True)
     score = models.IntegerField(default=0)

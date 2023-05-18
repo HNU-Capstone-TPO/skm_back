@@ -187,7 +187,7 @@ def createform(request):
     users.update(score=0)
 
     driver = GraphDatabase.driver(
-        'bolt://localhost:7687', auth=('neo4j', '12345678'))
+        'neo4j+s://9ff7bd23.databases.neo4j.io', auth=('neo4j', '123456789'))
     session = driver.session()
 
     q = 'match (n:ID {name:%s})-[w:SET]->(m:ID) return m.name' % (gdbsearch) #여기서 for문돌려서 하나씩뽑자.
@@ -251,7 +251,7 @@ def create_nodes_from_csv(csv_file):
 '''
 def create_nodes_from_csv(csv_file):
     df = pd.read_csv(csv_file, encoding='ISO-8859-1', header=None) # 헤더를 무시하도록 설정
-    driver = GraphDatabase.driver("bolt://localhost:7687", auth=("neo4j", "12345678"))
+    driver = GraphDatabase.driver('neo4j+s://9ff7bd23.databases.neo4j.io', auth=('neo4j', '123456789'))
 
     with driver.session() as session:
         for row in df.iterrows():
@@ -272,21 +272,21 @@ def create_nodes_from_csv(csv_file):
     
 def create_set_from_csv(csv_file):
     df = pd.read_csv(csv_file, encoding='ISO-8859-1', header=None) # 헤더를 무시하도록 설정
-    driver = GraphDatabase.driver("bolt://localhost:7687", auth=("neo4j", "12345678"))
+    driver = GraphDatabase.driver('neo4j+s://9ff7bd23.databases.neo4j.io', auth=('neo4j', '123456789'))
 
     with driver.session() as session:
         for row in df.iterrows():
             set = int(row[1].iloc[0])
             processed = str(row[1].iloc[1])  # 'processed' 값을 문자열로 변환
-            
-            print(f"Creating Set with name: {set}, processed: {processed}")
+            view = int(row[1].iloc[2])
+            print(f"Creating Set with name: {set}, processed: {processed}, view: {view}")
             
             # 노드가 이미 존재하는지 확인하고, 존재하지 않으면 생성
             query = (
-                "MERGE (n:Set {set: $set})"
-                " ON CREATE SET n.processed = $processed"
+                'MERGE (n:Set {set: $set})'
+                'ON CREATE SET n.processed = $processed'
             )
-            params = {"set": set, "processed": processed}
+            params = {"set": set, "processed": processed, "view": view}
             session.run(query, params)
     
     driver.close()
@@ -294,7 +294,7 @@ def create_set_from_csv(csv_file):
 def other(request):
 
     driver = GraphDatabase.driver(
-        'bolt://localhost:7687', auth=('neo4j', '72901997'))
+        'neo4j+s://9ff7bd23.databases.neo4j.io', auth=('neo4j', '123456789'))
     session = driver.session()
 
     # gdbsearch.txt 파일에서 gdbsearch 값을 읽어옴
@@ -419,7 +419,7 @@ def createform1(request):  # 리액트용
         # users.update(score=0) #그냥 처음 불러올때 초기화 하는게 나을지도?
 
         driver = GraphDatabase.driver(
-            'bolt://localhost:7687', auth=('neo4j', '72901997'))
+            'neo4j+s://9ff7bd23.databases.neo4j.io', auth=('neo4j', '123456789'))
         session = driver.session()
 
         q = 'match (n:ID {name:%s})-[w:SET]->(m:ID) return m.name' % (gdbsearch)

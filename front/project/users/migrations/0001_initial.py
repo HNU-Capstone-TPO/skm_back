@@ -29,6 +29,8 @@ class Migration(migrations.Migration):
                 ('tag', django.contrib.postgres.fields.ArrayField(base_field=models.CharField(max_length=100), blank=True, size=None)),
                 ('youtube', models.URLField(max_length=1024, blank=True)),
                 ('blog', models.URLField(max_length=1024, blank=True)),
+                ('y_name', models.CharField(max_length=255)),
+                ('b_name', models.CharField(max_length=255)),
             ],
         ),
     ]
