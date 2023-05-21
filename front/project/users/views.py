@@ -10,15 +10,10 @@ import os
 from neo4j import GraphDatabase
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-import json
-from django.http import HttpResponse
-import pandas as pd
 import re
-
 
 def home1(request):
     return render(request, 'folder/base.html')
-
 
 gen = ["남성", "여성", "공용", "성별테스트"]
 part = ["상의", "하의", "신발", "모자", "아우터", "부위테스트"]
@@ -104,6 +99,8 @@ def color_conversion(query):
 
 def createform(request):
     query = request.POST.getlist('query[]')
+    query = color_conversion(query)
+    query = num_conversion(query)    
     button_value = request.POST.get('button')
 
     print(query)
@@ -135,10 +132,6 @@ def createform(request):
         elif isinstance(q, int): 
             print(type(q))
             input6 = q
-            '''min = int(q)-5000
-            max = int(q)+5000
-            print(q, min, max)'''
-            # input6 = q
         else:
             input8.append(q)
 
@@ -179,48 +172,100 @@ def createform(request):
     serializer = UserSerializer(users, many=True)
 
     datasearch = serializer.data
-    if not serializer.data:
-        return JsonResponse({'users':[]})
-    first_result = serializer.data[0]
-    gdbsearch = first_result['id']  # gdb서치용
 
-    users.update(score=0)
+    rdb_result = serializer.data[:2] 
+    print("ABC:",rdb_result)
+    dataexpert_total = []
+    datanewbie_total = []
+    for rdb_item in rdb_result:
+        gdbsearch = rdb_item['id']  # gdb서치용
+        print("aaaaaaa:",gdbsearch)
+        gdbsearch_data = User.objects.get(id=gdbsearch)
+        gdbsearch_part = gdbsearch_data.part
+        users.update(score=0)
+        driver = GraphDatabase.driver(
+            'neo4j+s://9ff7bd23.databases.neo4j.io', auth=('neo4j', '123456789'))
+        session = driver.session()
+        q = f"MATCH (a:Node {{name: {gdbsearch}}})-[link:link]-(b:Set) RETURN count(b)"
+        setcount = session.run(q).single().get('count(b)')
+        print(setcount)
+        if setcount == 1: # 아이템이 중복이 아닐 때. 즉, 연결된 set가 하나일 때.
+            q = f"""
+                MATCH (a:Node {{name: {gdbsearch}}})-[link:link]-(b:Set)
+                WITH a, b
+                MATCH (b)-[link:link]-(c:Node)
+                WHERE c <> a
+                WITH collect(c) AS nodes
+                UNWIND nodes AS c
+                MATCH (c)-[link:link]-(d:Set)
+                WITH d
+                ORDER BY d.view ASC
+                LIMIT 1
+                SET d.view = d.view + 1
+                WITH d
+                MATCH (d)-[link:link]-(e:Node)
+                RETURN e.name
+                """
+            a = 1
+        else: # 아이템이 중복일 때. 즉, 연결된 set가 여러개일 때.
+            q = f"""
+                MATCH (a:Node {{name: {gdbsearch}}})-[link:link]-(b:Set)
+                WITH a, b
+                ORDER BY b.view ASC
+                LIMIT 1
+                SET b.view = b.view + 1
+                WITH a, b
+                MATCH (b)-[link:link]-(e:Node)
+                RETURN e.name
+                """  
+            a = 2    
+        results = session.run(q)
+        result = list(results)
+        names = [record['e.name'] for record in result]
+        print("A:",a)
+        print("vvvv:",names)
 
-    driver = GraphDatabase.driver(
-        'neo4j+s://9ff7bd23.databases.neo4j.io', auth=('neo4j', '123456789'))
-    session = driver.session()
+        usersnewbie = User.objects.filter(id__in=names)
+        serializernewbie = UserSerializer(usersnewbie, many=True)
 
-    q = 'match (n:ID {name:%s})-[w:SET]->(m:ID) return m.name' % (gdbsearch) #여기서 for문돌려서 하나씩뽑자.
-    results = session.run(q)
-    result = list(results)
+        dataexpert = datasearch + serializernewbie.data
 
-    names = [record.get('m.name') for record in result]
+        users1 = User.objects.filter(id__in=names, part__icontains="상의")[:1]  # 1개 넣은건 newbie용 확인용 나중에 3으로 교체
+        users2 = User.objects.filter(id__in=names, part__icontains="하의")[:1]
+        users3 = User.objects.filter(id__in=names, part__icontains="신발")[:1]
+        users4 = User.objects.filter(id__in=names, part__icontains="모자")[:1]
+        users5 = User.objects.filter(id__in=names, part__icontains="아우터")[:1]
+        users6 = User.objects.filter(id__in=names, part__icontains="포인트")[:1]
+        if gdbsearch_part:
+            if gdbsearch_part == "상의":
+                users1 = []
+            elif gdbsearch_part == "하의":
+                users2 = []
+            elif gdbsearch_part == "신발":
+                users3 = []
+            elif gdbsearch_part == "모자":
+                users4 = []
+            elif gdbsearch_part == "아우터":
+                users5 = []
+            elif gdbsearch_part == "포인트":
+                users6 = []    
+        serializer1 = UserSerializer(users1, many=True)
+        serializer2 = UserSerializer(users2, many=True)
+        serializer3 = UserSerializer(users3, many=True)
+        serializer4 = UserSerializer(users4, many=True)
+        serializer5 = UserSerializer(users5, many=True)
+        serializer6 = UserSerializer(users6, many=True)
 
-    usersnewbie = User.objects.filter(id__in=names)
-    serializernewbie = UserSerializer(usersnewbie, many=True)
-
-    dataexpert = datasearch + serializernewbie.data
-
-    users1 = User.objects.filter(id__in=names, part__icontains="상의")[
-        :1]  # 1개 넣은건 newbie용 확인용 나중에 3으로 교체
-    users2 = User.objects.filter(id__in=names, part__icontains="하의")[:1]
-    users3 = User.objects.filter(id__in=names, part__icontains="신발")[:1]
-    users4 = User.objects.filter(id__in=names, part__icontains="모자")[:1]
-
-    serializer1 = UserSerializer(users1, many=True)
-    serializer2 = UserSerializer(users2, many=True)
-    serializer3 = UserSerializer(users3, many=True)
-    serializer4 = UserSerializer(users4, many=True)
-
-    datanewbie = datasearch + serializer1.data + \
-        serializer2.data + serializer3.data + serializer4.data
-
+        datanewbie = datasearch + serializer1.data + \
+            serializer2.data + serializer3.data + serializer4.data + serializer5.data + serializer6.data
+        datanewbie_total += datanewbie
+    
     if button_value == 'E':   # expert
-        return render(request, 'folder/searchreal.html', {'users': dataexpert})
+        return render(request, 'folder/searchreal.html', {'users': dataexpert})#dataexpert
     elif button_value == 'S':   # search
-        return render(request, 'folder/searchreal.html', {'users': datasearch})
+        return render(request, 'folder/searchreal.html', {'users': datasearch})#datasearch
     else:       # 아무것도 안누르면 newbie가 기본값
-        return render(request, 'folder/searchreal.html', {'users': datanewbie})
+        return render(request, 'folder/searchreal.html', {'users': datanewbie_total})
 
     # part_list = ["상의", "하의", "신발", "모자"]
     # for part1 in part_list:
@@ -229,91 +274,6 @@ def createform(request):
     # data += serializer.data
 
     # return JsonResponse({'users': data}) 나중에 json 값으로 바꿔서 프론트에 보내야함
-'''
-def create_nodes_from_csv(csv_file):
-    df = pd.read_csv(csv_file, encoding='ISO-8859-1', header=None) #> 일반 정수값일때.
-    #df = pd.read_csv(csv_file, encoding='euc-kr', header=None)
-    driver = GraphDatabase.driver("bolt://localhost:7687", auth=("neo4j", "12345678"))
-
-    with driver.session() as session:
-        for row in df.iterrows():
-            # 노드가 이미 존재하는지 확인하는 쿼리 실행
-            query = "MATCH (n:Node {name: $name}) RETURN n"
-            params = {"name": int(row[1].iloc[0])} # params = {"num": int(row[1].iloc[0])} 권장. int일땐. 또는, int로 강제 형변환.
-            result = session.run(query, params)
-            
-            # 노드가 존재하지 않으면 노드 생성 쿼리 실행
-            if not result.single():
-                query = "CREATE (n:Node {name: $name})"
-                params = {"name": int(row[1].iloc[0])}
-                session.run(query, params)
-    driver.close()
-'''
-def create_nodes_from_csv(csv_file):
-    df = pd.read_csv(csv_file, encoding='ISO-8859-1', header=None) # 헤더를 무시하도록 설정
-    driver = GraphDatabase.driver('neo4j+s://9ff7bd23.databases.neo4j.io', auth=('neo4j', '123456789'))
-
-    with driver.session() as session:
-        for row in df.iterrows():
-            name = int(row[1].iloc[0])
-            processed = str(row[1].iloc[1])  # 'processed' 값을 문자열로 변환
-            
-            print(f"Creating node with name: {name}, processed: {processed}")
-            
-            # 노드가 이미 존재하는지 확인하고, 존재하지 않으면 생성
-            query = (
-                "MERGE (n:Node {name: $name})"
-                " ON CREATE SET n.processed = $processed"
-            )
-            params = {"name": name, "processed": processed}
-            session.run(query, params)
-    
-    driver.close()
-    
-def create_set_from_csv(csv_file):
-    df = pd.read_csv(csv_file, encoding='ISO-8859-1', header=None) # 헤더를 무시하도록 설정
-    driver = GraphDatabase.driver('neo4j+s://9ff7bd23.databases.neo4j.io', auth=('neo4j', '123456789'))
-
-    with driver.session() as session:
-        for row in df.iterrows():
-            set = int(row[1].iloc[0])
-            processed = str(row[1].iloc[1])  # 'processed' 값을 문자열로 변환
-            view = int(row[1].iloc[2])
-            print(f"Creating Set with name: {set}, processed: {processed}, view: {view}")
-            
-            # 노드가 이미 존재하는지 확인하고, 존재하지 않으면 생성
-            query = (
-                'MERGE (n:Set {set: $set})'
-                'ON CREATE SET n.processed = $processed'
-            )
-            params = {"set": set, "processed": processed, "view": view}
-            session.run(query, params)
-    
-    driver.close()
-        
-def other(request):
-
-    driver = GraphDatabase.driver(
-        'neo4j+s://9ff7bd23.databases.neo4j.io', auth=('neo4j', '123456789'))
-    session = driver.session()
-
-    # gdbsearch.txt 파일에서 gdbsearch 값을 읽어옴
-    with open(os.path.join(os.path.dirname(__file__), 'gdbsearch.txt'), 'r') as f:
-        gdbsearch = f.read().strip()
-
-    q = 'match (n:ID {name:%s})-[w:SET]->(m:ID) return m.name' % (gdbsearch)
-    results = session.run(q)
-    result = list(results)
-
-    names = [record.get('m.name') for record in result]
-    # print(names)
-
-    users = User.objects.filter(id__in=names)
-    serializer = UserSerializer(users, many=True)
-    data = serializer.data
-
-    return render(request, 'folder/search2.html', {'users': data})
-
 
 def search_view(request):
     users = User.objects.all()
@@ -336,7 +296,8 @@ def createform1(request):  # 리액트용
         # data = json.loads(request.body)
         # query = data.get("query")
         query_data = request.POST.getlist('query')
-
+        query_data = color_conversion(query_data)
+        query_data = num_conversion(query_data)    
         print(query_data)
 
         aaa = User.objects.all()
@@ -354,7 +315,7 @@ def createform1(request):  # 리액트용
         input3 = None
         input4 = None
         input5 = None
-        input6 = 0
+        input6 = None
         input8 = []  # 태그
 
         for q in query1:
@@ -364,8 +325,6 @@ def createform1(request):  # 리액트용
                 input1 = '여성'
             elif q == '공용':
                 input1 = '공용'
-            elif q == '성별테스트':
-                input1 = '성별테스트'
             # elif q in gen:
                 # input1 = q
             elif q in part:
@@ -376,7 +335,8 @@ def createform1(request):  # 리액트용
                 input4 = q
             elif q in brand:
                 input5 = q
-            elif q.isdigit():
+            elif isinstance(q, int): 
+                print(type(q))
                 input6 = q
             else:
                 input8.append(q)
@@ -397,7 +357,17 @@ def createform1(request):  # 리액트용
         if input5:
             filters &= Q(brand__icontains=input5)
         if input6:
-            filters &= Q(price__lte=input6)
+            if input6 < 20000:
+                min_price = input6
+                max_price = input6 + 10000
+            elif 20000 <= input6 and input6 < 100000:
+                min_price = input6 - 10000
+                max_price = input6 + 10000
+            else:
+                min_price = input6 - 50000
+                max_price = input6 + 50000
+            filters &= Q(price__gte=min_price) & Q(price__lte=max_price)        
+            #filters &= Q(price__lte=max) & Q(price__gte=min)
         if input8:
             for q in input8:
                 users = User.objects.filter(tag__icontains=q)
@@ -411,31 +381,164 @@ def createform1(request):  # 리액트용
         print(filters)
         serializer = UserSerializer(users, many=True)
 
-        data = serializer.data
+        datasearch  = serializer.data
 
-        first_result = serializer.data[0]
-        gdbsearch = first_result['id']  # gdb서치용
+        rdb_result  = serializer.data[:2] # 결과 몇개까지 볼건데
+        dataexpert_total = []
+        datanewbie_total = []
+        for rdb_item in rdb_result:
+            gdbsearch = rdb_item ['id']  # gdb서치용
+            print(gdbsearch)
 
-        # users.update(score=0) #그냥 처음 불러올때 초기화 하는게 나을지도?
+            # users.update(score=0) #그냥 처음 불러올때 초기화 하는게 나을지도?
 
+            gdbsearch_data = User.objects.get(id=gdbsearch)
+            gdbsearch_part = gdbsearch_data.part
+            users.update(score=0)
+            driver = GraphDatabase.driver(
+                'neo4j+s://9ff7bd23.databases.neo4j.io', auth=('neo4j', '123456789'))
+            session = driver.session()
+            q = f"MATCH (a:Node {{name: {gdbsearch}}})-[link:link]-(b:Set) RETURN count(b)"
+            setcount = session.run(q).single().get('count(b)')
+            if setcount == 1: # 아이템이 중복이 아닐 때. 즉, 연결된 set가 하나일 때.
+                q = f"""
+                    MATCH (a:Node {{name: {gdbsearch}}})-[link:link]-(b:Set)
+                    WITH a, b
+                    MATCH (b)-[link:link]-(c:Node)
+                    WHERE c <> a
+                    WITH collect(c) AS nodes
+                    UNWIND nodes AS c
+                    MATCH (c)-[link:link]-(d:Set)
+                    WITH d
+                    ORDER BY d.view ASC
+                    LIMIT 1
+                    SET d.view = d.view + 1
+                    WITH d
+                    MATCH (d)-[link:link]-(e:Node)
+                    RETURN e.name
+                    """
+                a = 1
+            else: # 아이템이 중복일 때. 즉, 연결된 set가 여러개일 때.
+                q = f"""
+                    MATCH (a:Node {{name: {gdbsearch}}})-[link:link]-(b:Set)
+                    WITH a, b
+                    ORDER BY b.view ASC
+                    LIMIT 1
+                    SET b.view = b.view + 1
+                    WITH a, b
+                    MATCH (b)-[link:link]-(e:Node)
+                    RETURN e.name
+                    """  
+                a = 2    
+            results = session.run(q)
+            result = list(results)
+            names = [record['e.name'] for record in result]
+
+            usersnewbie = User.objects.filter(id__in=names)
+            serializernewbie = UserSerializer(usersnewbie, many=True)
+
+            dataexpert = datasearch + serializernewbie.data
+
+            users1 = User.objects.filter(id__in=names, part__icontains="상의")[:2]  # 1개 넣은건 newbie용 확인용 나중에 3으로 교체
+            users2 = User.objects.filter(id__in=names, part__icontains="하의")[:1]
+            users3 = User.objects.filter(id__in=names, part__icontains="신발")[:1]
+            users4 = User.objects.filter(id__in=names, part__icontains="모자")[:1]
+            users5 = User.objects.filter(id__in=names, part__icontains="아우터")[:1]
+            users6 = User.objects.filter(id__in=names, part__icontains="포인트")[:1]
+            if gdbsearch_part:
+                if gdbsearch_part == "상의":
+                    users1 = []
+                elif gdbsearch_part == "하의":
+                    users2 = []
+                elif gdbsearch_part == "신발":
+                    users3 = []
+                elif gdbsearch_part == "모자":
+                    users4 = []
+                elif gdbsearch_part == "아우터":
+                    users5 = []
+                elif gdbsearch_part == "포인트":
+                    users6 = []    
+            serializer1 = UserSerializer(users1, many=True)
+            serializer2 = UserSerializer(users2, many=True)
+            serializer3 = UserSerializer(users3, many=True)
+            serializer4 = UserSerializer(users4, many=True)
+            serializer5 = UserSerializer(users5, many=True)
+            serializer6 = UserSerializer(users6, many=True)
+
+            datanewbie = datasearch + serializer1.data + \
+                serializer2.data + serializer3.data + serializer4.data + serializer5.data + serializer6.data
+            datanewbie_total += datanewbie
+
+        return JsonResponse({'users': datanewbie_total})
+
+    else:
+        return JsonResponse({'result': 'error', 'message': 'Invalid request method'})
+
+@api_view(['POST'])
+def inter(request):  # 리액트용
+    if request.method == 'POST':
+        interid = request.data.get('userId')
+        print(interid)
+        
         driver = GraphDatabase.driver(
             'neo4j+s://9ff7bd23.databases.neo4j.io', auth=('neo4j', '123456789'))
         session = driver.session()
-
-        q = 'match (n:ID {name:%s})-[w:SET]->(m:ID) return m.name' % (gdbsearch)
+        
+        q = f"MATCH (a:Node {{name: {interid}}})-[link:link]-(b:Set) RETURN count(b)"
+        setcount = session.run(q)
+        if setcount == 1: # 아이템이 중복이 아닐 때. 즉, 연결된 set가 하나일 때.
+            q = f"""
+                MATCH (a:Node {{name: {interid}}})-[link:link]-(b:Set)
+                WITH a, b
+                MATCH (b)-[link:link]-(c:Node)
+                WHERE c <> a
+                WITH collect(c) AS nodes
+                UNWIND nodes AS c
+                MATCH (c)-[link:link]-(d:Set)
+                WITH d
+                ORDER BY d.view ASC
+                LIMIT 1
+                SET d.view = d.view + 1
+                WITH d
+                MATCH (d)-[link:link]-(e:Node)
+                RETURN e.name
+                """
+        else: # 아이템이 중복일 때. 즉, 연결된 set가 여러개일 때.
+            q = f"""
+                MATCH (a:Node {{name: {interid}}})-[link:link]-(b:Set)
+                WITH a, b
+                ORDER BY b.view ASC
+                LIMIT 1
+                SET b.view = b.view + 1
+                WITH a, b
+                MATCH (b)-[link:link]-(e:Node)
+                RETURN e.name
+                """  
         results = session.run(q)
         result = list(results)
+        
+        names = [record.get('e.name') for record in result]
+        
+        print(names)
 
-        names = [record.get('m.name') for record in result]
-
-        users1 = User.objects.filter(id__in=names)
+        users1 = User.objects.filter(id__in=names, part__icontains="상의")[:1]  # 1개 넣은건 newbie용 확인용 나중에 3으로 교체
+        users2 = User.objects.filter(id__in=names, part__icontains="하의")[:1]
+        users3 = User.objects.filter(id__in=names, part__icontains="신발")[:1]
+        users4 = User.objects.filter(id__in=names, part__icontains="모자")[:1]
+        users5 = User.objects.filter(id__in=names, part__icontains="아우터")[:1]
+        users6 = User.objects.filter(id__in=names, part__icontains="포인트")[:1]
         serializer1 = UserSerializer(users1, many=True)
+        serializer2 = UserSerializer(users2, many=True)
+        serializer3 = UserSerializer(users3, many=True)
+        serializer4 = UserSerializer(users4, many=True)
+        serializer5 = UserSerializer(users5, many=True)
+        serializer6 = UserSerializer(users6, many=True)
 
-        data1 = serializer1.data
+        recommend = serializer1.data + serializer2.data + \
+            serializer3.data + serializer4.data + serializer5.data + serializer6.data
 
-        dataa = data + data1
+        print(recommend)
 
-        return JsonResponse({'users': dataa})
-
+        return JsonResponse({'users': recommend})
     else:
         return JsonResponse({'result': 'error', 'message': 'Invalid request method'})

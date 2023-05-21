@@ -1,9 +1,10 @@
 <h2>상의</h2>
 {% for user in users %} {% if user.part == "상의" %}
 <p>
-  {{user.id}} {{user.name}} {{user.gender}} {{user.color}} {{user.part}} {{user.season}}
-  {{user.tag}} {{user.rink}} {{user.image}} {{user.modelimage}} {{user.brand}} {{user.youtube}} {{user.blog}}
-  {{user.price}}
+  {{user.id}} {{user.name}} {{user.rink}} {{user.image}} {{user.modelimage}}
+  {{user.gender}} {{user.color}} {{user.part}} {{user.season}} {{user.brand}}
+  {{user.price}} {{user.tag}} {{user.youtube}} {{user.blog}} {{user.y_name}}
+  {{user.b_name}}
 </p>
 {% endif %} {% empty %}
 <p>검색 결과가 없습니다.</p>
@@ -12,20 +13,10 @@
 <h2>하의</h2>
 {% for user in users %} {% if user.part == "하의" %}
 <p>
-  {{user.id}} {{user.name}} {{user.gender}} {{user.color}} {{user.part}} {{user.season}}
-  {{user.tag}} {{user.rink}} {{user.image}} {{user.modelimage}} {{user.brand}} {{user.youtube}} {{user.blog}}
-  {{user.price}}
-</p>
-{% endif %} {% empty %}
-<p>검색 결과가 없습니다.</p>
-{% endfor %}
-
-<h2>아우터</h2>
-{% for user in users %} {% if user.part == "아우터" %}
-<p>
-  {{user.id}} {{user.name}} {{user.gender}} {{user.color}} {{user.part}} {{user.season}}
-  {{user.tag}} {{user.rink}} {{user.image}} {{user.modelimage}} {{user.brand}} {{user.youtube}} {{user.blog}}
-  {{user.price}}
+  {{user.id}} {{user.name}} {{user.rink}} {{user.image}} {{user.modelimage}}
+  {{user.gender}} {{user.color}} {{user.part}} {{user.season}} {{user.brand}}
+  {{user.price}} {{user.tag}} {{user.youtube}} {{user.blog}} {{user.y_name}}
+  {{user.b_name}}
 </p>
 {% endif %} {% empty %}
 <p>검색 결과가 없습니다.</p>
@@ -34,9 +25,10 @@
 <h2>모자</h2>
 {% for user in users %} {% if user.part == "모자" %}
 <p>
-  {{user.id}} {{user.name}} {{user.gender}} {{user.color}} {{user.part}} {{user.season}}
-  {{user.tag}} {{user.rink}} {{user.image}} {{user.modelimage}} {{user.brand}} {{user.youtube}} {{user.blog}}
-  {{user.price}}
+  {{user.id}} {{user.name}} {{user.rink}} {{user.image}} {{user.modelimage}}
+  {{user.gender}} {{user.color}} {{user.part}} {{user.season}} {{user.brand}}
+  {{user.price}} {{user.tag}} {{user.youtube}} {{user.blog}} {{user.y_name}}
+  {{user.b_name}}
 </p>
 {% endif %} {% empty %}
 <p>검색 결과가 없습니다.</p>
@@ -45,9 +37,22 @@
 <h2>신발</h2>
 {% for user in users %} {% if user.part == "신발" %}
 <p>
-  {{user.id}} {{user.name}} {{user.gender}} {{user.color}} {{user.part}} {{user.season}}
-  {{user.tag}} {{user.rink}} {{user.image}} {{user.modelimage}} {{user.brand}} {{user.youtube}} {{user.blog}}
-  {{user.price}}
+  {{user.id}} {{user.name}} {{user.rink}} {{user.image}} {{user.modelimage}}
+  {{user.gender}} {{user.color}} {{user.part}} {{user.season}} {{user.brand}}
+  {{user.price}} {{user.tag}} {{user.youtube}} {{user.blog}} {{user.y_name}}
+  {{user.b_name}}
+</p>
+{% endif %} {% empty %}
+<p>검색 결과가 없습니다.</p>
+{% endfor %}
+
+<h2>아우터</h2>
+{% for user in users %} {% if user.part == "아우터" %}
+<p>
+  {{user.id}} {{user.name}} {{user.rink}} {{user.image}} {{user.modelimage}}
+  {{user.gender}} {{user.color}} {{user.part}} {{user.season}} {{user.brand}}
+  {{user.price}} {{user.tag}} {{user.youtube}} {{user.blog}} {{user.y_name}}
+  {{user.b_name}}
 </p>
 {% endif %} {% empty %}
 <p>검색 결과가 없습니다.</p>
@@ -56,9 +61,10 @@
 <h2>포인트</h2>
 {% for user in users %} {% if user.part == "포인트" %}
 <p>
-  {{user.id}} {{user.name}} {{user.gender}} {{user.color}} {{user.part}} {{user.season}}
-  {{user.tag}} {{user.rink}} {{user.image}} {{user.modelimage}} {{user.brand}} {{user.youtube}} {{user.blog}}
-  {{user.price}}
+  {{user.id}} {{user.name}} {{user.rink}} {{user.image}} {{user.modelimage}}
+  {{user.gender}} {{user.color}} {{user.part}} {{user.season}} {{user.brand}}
+  {{user.price}} {{user.tag}} {{user.youtube}} {{user.blog}} {{user.y_name}}
+  {{user.b_name}}
 </p>
 {% endif %} {% empty %}
 <p>검색 결과가 없습니다.</p>

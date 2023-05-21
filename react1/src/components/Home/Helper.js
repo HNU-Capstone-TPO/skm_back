@@ -11,8 +11,31 @@ const helpList = [
     "검은색 상의를 입으시려는 건가요?"
 ]
 
-
 const Helper = ({tags}) => {
+    const [check1, setCheck1]=useState(true);
+    const [check2, setCheck2]=useState(true);
+    const [helpMessage, setHelpMessage] = useState(helpList[0]);
+
+    useEffect(() => {
+        console.log("helper", tags);
+        if (tags.length !== 0 && check2) {
+            setHelpMessage(helpList[1]);
+            setCheck2(false);
+        } else if (tags.length !== 0 && check1) {
+            for (let i = 0; i < tags.length; i++) {
+                if (tags.includes(tagList[2])) {
+                    setHelpMessage(helpList[3]);
+                    setCheck1(false);
+                    
+                    break;
+                }
+            }
+        }
+        setTimeout(() => {setHelpMessage("")}, 5000);
+    }, [tags, check1, check2]);
+
+
+/*const Helper = ({tags}) => {
     const [check1, setCheck1]=useState(true);
     const [check2, setCheck2]=useState(true);
     const [helpMessage, setHelpMessage] = useState(helpList[0]);
@@ -33,7 +56,7 @@ const Helper = ({tags}) => {
             }
         }
         setTimeout(() => {setHelpMessage("")}, 5000);
-    }, [tags, check1, check2]);
+    }, [tags, check1, check2]);*/       //  05.15 이상한거 있으면 이부분 그냥 쓰기
 
     /*var helpMessage = "";
     var i;

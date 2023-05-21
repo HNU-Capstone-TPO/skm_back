@@ -5,11 +5,11 @@ import './Home.css';
 import { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import axios from "axios";
-import { createContext } from 'react';
 import { SaveContext } from "../contexts/SaveContext";
 import { useContext } from "react";
 
-const MyContext = createContext();
+
+
 
 const Home = () => {
     
@@ -17,8 +17,6 @@ const Home = () => {
     const [query, setQuery] = useState([]);
     const [submitFlag, setSubmitFlag] = useState(false);
     const { save, setSave } = useContext(SaveContext); // SaveContext에서 save 배열 가져오기
-    
-;    //const [users, setUsers] = useState([]);
 
     const navigate = useNavigate();
 
@@ -73,29 +71,34 @@ const Home = () => {
   };
   
   const getSave = () => {
-    const newSave = [...save, tags];
+    const newSave = [tags, ...save];
     setSave(newSave);
     saveToLocalStorage("save", newSave);
   };
 
-  const Save = ({ save }) => {
-    return (
-      <div>
-        <h2>Saved Tags</h2>
-        {save.map((item, index) => (
-          <p key={index}>{item}</p>
-        ))}
-      </div>
-    );
-  };
-    
+  const navi = () => {
+    navigate('/mypage/timeline');
+  }
+
+  const navi2 = () => {
+    navigate('/mypage/favorites');
+  }
+
+  const navi3 = () => {
+    navigate('/mypage/interested-products')
+  }
+
     return (
       <SaveContext.Provider value={{ getSave }}>
         <div className="home">
             <div className="right">
                 <div className="helper" ><Helper tags={tags}/></div>
                 <div className="input" ><Input onSubmit={handleSubmit} getTags={getTags} getSave={getSave}/></div>
-                <Save save={save} />
+            </div>
+            <div className="left">
+                <button onClick={navi}>타임라인</button>
+                <button onClick={navi2}>찜목록</button>
+                <button onClick={navi3}>추천상품</button>
             </div>
         </div>
       </SaveContext.Provider>

@@ -1,34 +1,8 @@
-/*import { useContext } from "react";
-import { SaveContext } from "../../contexts/SaveContext";
-
-
-
-const Timeline = () => {
-  const { save, setSave } = useContext(SaveContext); // SaveContext에서 save 배열과 setSave 함수 가져오기
-
-  const handleReset = () => {
-    setSave([]); // save 배열 초기화
-  };
-
-  return (
-    <div>
-      <h2>타임라인페이지</h2>
-      {save.map((item, index) => (
-        <p key={index}>{item}</p>
-        
-      ))}
-      <button onClick={handleReset}>Reset</button>
-    </div>
-  );
-};
-
-export default Timeline;*/
-
 import { useContext, useState, useEffect } from "react";
 import { SaveContext } from "../../contexts/SaveContext";
 import axios from "axios";
-/*import { navigate } from "@reach/router";*/
 import { useNavigate } from 'react-router-dom';
+import "./Timeline.css";
 
 const Timeline = () => {
   const { save, setSave } = useContext(SaveContext);
@@ -44,6 +18,15 @@ const Timeline = () => {
   const handleItemClick = (item) => {
     setSelectedItem(item);
     setSubmitFlag(true);
+  };
+
+  const handleDeleteClick = (index) => {
+    setSave((prevSave) => {
+      const newSave = [...prevSave];
+      newSave.splice(index, 1); // 해당 인덱스의 아이템을 삭제
+      localStorage.setItem("save", JSON.stringify(newSave)); // 로컬 스토리지에 저장
+      return newSave;
+    });
   };
 
   useEffect(() => {
@@ -67,16 +50,23 @@ const Timeline = () => {
   }, [submitFlag, selectedItem, navigate]);
 
   return (
-    <div>
-      <h2>Timeline Page</h2>
-      {save.map((item, index) => (
-        <div key={index}>
-          <p>{item}</p>
-          <button onClick={() => handleItemClick(item)}>Send to Server</button>
-        </div>
-      ))}
+    <table>
       <button onClick={handleReset}>Reset</button>
-    </div>
+      <h2>타임라인페이지</h2>
+      {save.map((item, index) => (
+        <tr className="my-div2" key={index}>
+          <td className="aim-2">
+          {item.map((subItem) => (
+            <div className="my-divin">{subItem}</div>
+          ))}
+          </td>
+          <td className="button2">
+              <button onClick={() => handleItemClick(item)}>이동</button>
+              <button onClick={() => handleDeleteClick(index)}>X</button> {/* 삭제 버튼 추가 */}
+          </td>
+        </tr>
+      ))}
+    </table>
   );
 };
 

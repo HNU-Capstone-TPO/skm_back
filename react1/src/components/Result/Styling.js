@@ -1,8 +1,14 @@
-import { useState, useEffect } from "react";
-//import axios from "axios";
+import { useContext, useState, useEffect } from "react";
 import "./Styling.css";
+import { SaveItemContext } from "../../contexts/SaveItem";
+import { SaveRecommendContext } from "../../contexts/SaveRecommend";
+import axios from "axios";
 
 const InfoBox = ({ users, setSelectedProduct, index }) => {
+  const { users: savedUsers, setUsers: setSavedUsers } = useContext(SaveItemContext);
+  const { recommend, setRecommend } = useContext(SaveRecommendContext);
+
+
   const handleCheckboxChange = (e, user) => {
     setSelectedProduct((prevState) => {
       const newSelected = [...prevState];
@@ -21,6 +27,24 @@ const InfoBox = ({ users, setSelectedProduct, index }) => {
     });
   };
 
+  const handleSaveButtonClick = (user) => {
+    setSavedUsers((prevState) => [user, ...prevState]);
+
+    
+  }; /*이부분에서 user랑 ...prevState 바꾸면 역순으로 저장*/
+
+  const handleSaveRecommend = (user) => {
+
+    axios.post("http://127.0.0.1:8000/inter/", { userId: user.id })
+      .then((response) => {
+        console.log(response.data);
+        setRecommend((prevState) => [[...response.data.users, user], ...prevState]);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }
+
   return (
     <div className="info-box">
       {users.map((user) => (
@@ -34,6 +58,7 @@ const InfoBox = ({ users, setSelectedProduct, index }) => {
             id={`checkbox-${user.id}`}
             onChange={(e) => handleCheckboxChange(e, user)}
           />
+          <button onClick={() => {handleSaveButtonClick(user); handleSaveRecommend(user)}}>찜</button>
         </div>
       ))}
     </div>
@@ -62,19 +87,7 @@ const Styling = ({ users=[], setSelectedProducts }) => {
       return newBoxes;
     });
   };
-  /*
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get("http://127.0.0.1:8000/api/products/");
-        setProducts(response.data);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
-    fetchData();
-  }, []);
-  */
+  
   useEffect(() => {
     setSelectedProducts(selectedProduct);
   }, [selectedProduct, setSelectedProducts]);
