@@ -102,7 +102,7 @@ def createform(request):
     query = color_conversion(query)
     query = num_conversion(query)    
     button_value = request.POST.get('button')
-
+    check_season = []
     print(query)
 
     gdbsearch = 0
@@ -127,8 +127,9 @@ def createform(request):
             input3 = q
         elif q in season:
             input4 = q
+            check_season.append(input4)
         elif q in brand:
-            input5 = q
+            input5 = q       
         elif isinstance(q, int): 
             print(type(q))
             input6 = q
@@ -178,6 +179,12 @@ def createform(request):
     dataexpert_total = []
     datanewbie_total = []
     for rdb_item in rdb_result:
+        if not check_season:
+            #compare_season.append(rdb_item['season'])
+            compare_season = rdb_item['season']
+        else:
+            compare_season = check_season
+        print("season : ",compare_season)
         gdbsearch = rdb_item['id']  # gdb서치용
         print("aaaaaaa:",gdbsearch)
         gdbsearch_data = User.objects.get(id=gdbsearch)
@@ -194,28 +201,31 @@ def createform(request):
                 MATCH (a:Node {{name: {gdbsearch}}})-[link:link]-(b:Set)
                 WITH a, b
                 MATCH (b)-[link:link]-(c:Node)
-                WHERE c <> a
-                WITH collect(c) AS nodes
+                WITH a, collect(c) AS nodes
                 UNWIND nodes AS c
                 MATCH (c)-[link:link]-(d:Set)
-                WITH d
-                ORDER BY d.view ASC
+                WHERE ANY(season IN d.season WHERE season IN {compare_season})
+                WITH DISTINCT d AS f, a
+                ORDER BY f.view ASC
                 LIMIT 1
-                SET d.view = d.view + 1
-                WITH d
-                MATCH (d)-[link:link]-(e:Node)
+                SET f.view = f.view + 1
+                WITH a,f
+                MATCH (f)-[link:link]-(e:Node)
+                WHERE e <> a
                 RETURN e.name
                 """
             a = 1
         else: # 아이템이 중복일 때. 즉, 연결된 set가 여러개일 때.
             q = f"""
                 MATCH (a:Node {{name: {gdbsearch}}})-[link:link]-(b:Set)
+                WHERE ANY(season IN b.season WHERE season IN {compare_season})
                 WITH a, b
                 ORDER BY b.view ASC
                 LIMIT 1
                 SET b.view = b.view + 1
                 WITH a, b
                 MATCH (b)-[link:link]-(e:Node)
+                WHERE e <> a
                 RETURN e.name
                 """  
             a = 2    
@@ -256,10 +266,11 @@ def createform(request):
         serializer5 = UserSerializer(users5, many=True)
         serializer6 = UserSerializer(users6, many=True)
 
-        datanewbie = datasearch + serializer1.data + \
+        datanewbie = serializer1.data + \
             serializer2.data + serializer3.data + serializer4.data + serializer5.data + serializer6.data
         datanewbie_total += datanewbie
-    
+    datanewbie_total += datasearch
+    datanewbie_total = remove_duplicates(datanewbie_total, key=lambda x: x['id'])
     if button_value == 'E':   # expert
         return render(request, 'folder/searchreal.html', {'users': dataexpert})#dataexpert
     elif button_value == 'S':   # search
@@ -267,13 +278,12 @@ def createform(request):
     else:       # 아무것도 안누르면 newbie가 기본값
         return render(request, 'folder/searchreal.html', {'users': datanewbie_total})
 
-    # part_list = ["상의", "하의", "신발", "모자"]
-    # for part1 in part_list:
-    # users1 = User.objects.filter(id__in=names, part__icontains=part1)[:1]
-    # serializer = UserSerializer(users1, many=True)
-    # data += serializer.data
+# 중복 제거를 위한 함수 정의
+def remove_duplicates(seq, key=lambda x: x):
+    seen = set()
+    seen_add = seen.add
+    return [x for x in seq if key(x) not in seen and not seen_add(key(x))]
 
-    # return JsonResponse({'users': data}) 나중에 json 값으로 바꿔서 프론트에 보내야함
 
 def search_view(request):
     users = User.objects.all()
@@ -297,7 +307,8 @@ def createform1(request):  # 리액트용
         # query = data.get("query")
         query_data = request.POST.getlist('query')
         query_data = color_conversion(query_data)
-        query_data = num_conversion(query_data)    
+        query_data = num_conversion(query_data)  
+        check_season = [] 
         print(query_data)
 
         aaa = User.objects.all()
@@ -333,6 +344,7 @@ def createform1(request):  # 리액트용
                 input3 = q
             elif q in season:
                 input4 = q
+                check_season.append(input4)
             elif q in brand:
                 input5 = q
             elif isinstance(q, int): 
@@ -387,11 +399,14 @@ def createform1(request):  # 리액트용
         dataexpert_total = []
         datanewbie_total = []
         for rdb_item in rdb_result:
+            if not check_season:
+                compare_season = rdb_item['season']
+            else:
+                compare_season = check_season
+            print("season : ",compare_season)        
             gdbsearch = rdb_item ['id']  # gdb서치용
             print(gdbsearch)
-
             # users.update(score=0) #그냥 처음 불러올때 초기화 하는게 나을지도?
-
             gdbsearch_data = User.objects.get(id=gdbsearch)
             gdbsearch_part = gdbsearch_data.part
             users.update(score=0)
@@ -405,28 +420,31 @@ def createform1(request):  # 리액트용
                     MATCH (a:Node {{name: {gdbsearch}}})-[link:link]-(b:Set)
                     WITH a, b
                     MATCH (b)-[link:link]-(c:Node)
-                    WHERE c <> a
-                    WITH collect(c) AS nodes
+                    WITH a, collect(c) AS nodes
                     UNWIND nodes AS c
                     MATCH (c)-[link:link]-(d:Set)
-                    WITH d
-                    ORDER BY d.view ASC
+                    WHERE ANY(season IN d.season WHERE season IN {compare_season})
+                    WITH DISTINCT d AS f, a
+                    ORDER BY f.view ASC
                     LIMIT 1
-                    SET d.view = d.view + 1
-                    WITH d
-                    MATCH (d)-[link:link]-(e:Node)
+                    SET f.view = f.view + 1
+                    WITH a,f
+                    MATCH (f)-[link:link]-(e:Node)
+                    WHERE e <> a
                     RETURN e.name
                     """
                 a = 1
             else: # 아이템이 중복일 때. 즉, 연결된 set가 여러개일 때.
                 q = f"""
                     MATCH (a:Node {{name: {gdbsearch}}})-[link:link]-(b:Set)
+                    WHERE ANY(season IN b.season WHERE season IN {compare_season})
                     WITH a, b
                     ORDER BY b.view ASC
                     LIMIT 1
                     SET b.view = b.view + 1
                     WITH a, b
                     MATCH (b)-[link:link]-(e:Node)
+                    WHERE e <> a
                     RETURN e.name
                     """  
                 a = 2    
@@ -465,9 +483,11 @@ def createform1(request):  # 리액트용
             serializer5 = UserSerializer(users5, many=True)
             serializer6 = UserSerializer(users6, many=True)
 
-            datanewbie = datasearch + serializer1.data + \
+            datanewbie = serializer1.data + \
                 serializer2.data + serializer3.data + serializer4.data + serializer5.data + serializer6.data
             datanewbie_total += datanewbie
+        datanewbie_total += datasearch
+        datanewbie_total = remove_duplicates(datanewbie_total, key=lambda x: x['id'])    
 
         return JsonResponse({'users': datanewbie_total})
 
