@@ -29,8 +29,6 @@ const InfoBox = ({ users, setSelectedProduct, index }) => {
 
   const handleSaveButtonClick = (user) => {
     setSavedUsers((prevState) => [user, ...prevState]);
-
-    
   }; /*이부분에서 user랑 ...prevState 바꾸면 역순으로 저장*/
 
   const handleSaveRecommend = (user) => {
@@ -77,6 +75,7 @@ const Styling = ({ users=[], setSelectedProducts }) => {
   const [selectedProduct, setSelectedProduct] = useState([null, null, null, null, null, null]);
   //타이틀에 단어로 필터링해서 박스로 보여줌
   const filterProducts = (category) => {
+    console.log(users);
     return users.filter((user) => user.part && user.part.includes(category));
   };
   

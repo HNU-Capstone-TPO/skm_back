@@ -1,0 +1,163 @@
+.table-wrap{
+    display: block;
+    width: 1024px;
+  }
+
+.table-title {
+    display:flex;
+    border-bottom: solid 3px #2c22bb;
+    width: 100%; 
+    height: 60px;
+    flex-wrap: wrap; /* 추가 */
+    justify-content: center; /* 추가 */
+    align-items: center;
+    font-family: IBM Plex Sans KR-Light;
+    font-size: 35px;
+  }
+
+.my-div {
+    display: inline-block;
+    padding: 0.5em;
+    margin: 0.5em 0;
+    font-weight: bold;
+    color: #000000;
+    background: #FFF;
+    border: solid 3px #000000;
+    border-radius: 10px;
+    width: 1024px;
+    height: 100%;
+  }
+
+  .UserSelectItem-set-buttons{   /*클릭하는 버튼용*/
+    display: flex;
+    flex-wrap: wrap; /* flex-wrap 속성을 wrap으로 설정 */
+    justify-content: space-between;
+    margin: 20px;
+    justify-content: center;
+  } 
+
+  .UserSelectItem-abc{
+    position: absolute;
+    display: flex;
+    flex-wrap: wrap;
+    margin: 2px;
+    width: 305px;
+    height: 137px;
+    top: 0;
+    left: 0;
+  }
+
+  .UserSelectItem-table-button-wrapper{
+    position: relative;
+    border: solid 3px #ee0c0c;
+  }
+
+  .UserSelectItem-imga {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    width: 33.333333333%;
+    height: 50%;
+    z-index: 1;
+    top: 0px;
+    left: 0px;
+  }
+
+  .UserSelectItem-imgmain1{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    width: 33.3%;
+    height: 50%;
+    position: relative;
+    z-index: 0;
+    border: 1px solid #ffebb5; 
+  }
+
+  .UserSelectItem-table-button {
+    display: flex;
+    flex-wrap: wrap;
+    width: 310px;
+    height: 140px;
+  } 
+
+  .UserSelectItem-table-div1 {
+    position: relative;
+    display: flex; /* display 속성을 flex로 설정 */
+    justify-content: center; /* 수평 가운데 정렬 */
+    align-items: center; /* 수직 가운데 정렬 */
+    border: 1px solid #ffebb5; 
+    background-color: #ffebb5; 
+    border-radius: 16px;
+    box-shadow: inset 0 0 8px #deb13a;
+    width: 310px; 
+    height: 140px;
+    margin-left: 40px;
+    margin-right: 40px;
+    margin-top: 20px;
+  }
+
+  .UserSelectItem-itemset{
+    position: relative;
+    display: flex; /* display 속성을 flex로 설정 */
+    flex-direction: column;
+    justify-content: center; /* 수평 가운데 정렬 */
+    align-items: center; /* 수직 가운데 정렬 */
+    border: 1px solid #ffebb5; 
+    background-color: #ffebb5; 
+    border-radius: 16px;
+    box-shadow: inset 0 0 8px #deb13a;
+    width: 350px; 
+    height: 250px;
+    margin: 20px;
+  }
+
+  .UserSelectItem-keyward{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 200px;
+    height: 50px;
+    font-size: 20px;
+  }
+
+  .UserSelectItem-table-detail{
+    position: absolute;
+    top : 80px;
+    left : -100px;
+    border: 3px solid #295fb7;
+    background-color: #ffffff; 
+    width: 500px; 
+    height: 700px;
+    margin: 1em 0;
+    margin-left:35%;
+    z-index: 5;
+    font-family: IBM Plex Sans KR-Light;
+  }
+
+  .UserSelectItem-table-detail2 {              /* 부품별 창 */
+    position: relative;
+    display: flex; /* display 속성을 flex로 설정 */
+    align-items: center; /* 수직 가운데 정렬 */
+    border: 3px solid #b5dcff; 
+    width: 494px; 
+    height: 130px;
+  }
+  
+  .UserSelectItem-table-head{
+    display: flex;
+    height: 40px;
+    width: 500px;
+  }
+  
+  .UserTable{
+    display: flex;
+    width: 500px;
+  }
+
+  .UserSelectItem-headcss{
+    display: flex;
+    width: 464px;
+    justify-content: center;
+    align-items: center;
+  }

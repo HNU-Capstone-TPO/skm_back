@@ -15,7 +15,7 @@ const Navbar = () => {
         <NavItem to="/signup" activeClassName="active">
           회원가입
         </NavItem>
-        <NavItem to="/mypage" activeClassName="active">
+        <NavItem to="/mypage/myinfo" activeClassName="active">
           마이 페이지
         </NavItem>
       </Nav>

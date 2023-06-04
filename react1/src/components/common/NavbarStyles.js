@@ -1,6 +1,7 @@
 import styled from 'styled-components';
 import { NavLink } from 'react-router-dom';
 
+//헤더부분
 export const LogoWrapper = styled.div`
   display: flex;
   flex-direction: column;
@@ -9,7 +10,7 @@ export const LogoWrapper = styled.div`
   top: 0;
   left: 0;
   right: 0;
-  background-color: #000;
+  background-color: #b5dcff;
   z-index: 100;
 `;
 

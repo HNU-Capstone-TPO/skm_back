@@ -33,6 +33,19 @@ const StyledListGroup = styled(ListGroup)`
 
 const MyInfo = () => {
   const user = {
+    a1: '',
+    a2: '',
+    a3: '',
+    a4: '',
+    a5: '',
+    a6: '',
+    a7: '',
+    a8: '',
+    a9: '',
+  };
+
+  const user1 = {
+    gender: '',
     name: '홍길동',
     email: 'hong@example.com',
     phoneNumber: '010-1234-5678',
@@ -46,16 +59,31 @@ const MyInfo = () => {
       </Card.Header>
       <StyledListGroup variant="flush">
         <ListGroup.Item>
-          <strong>이름:</strong> {user.name}
+          <strong>성별:</strong> {user.a1}
         </ListGroup.Item>
         <ListGroup.Item>
-          <strong>이메일:</strong> {user.email}
+          <strong>키:</strong> {user.a2}
         </ListGroup.Item>
         <ListGroup.Item>
-          <strong>전화번호:</strong> {user.phoneNumber}
+          <strong>몸무게:</strong> {user.a3}
         </ListGroup.Item>
         <ListGroup.Item>
-          <strong>주소:</strong> {user.address}
+          <strong>체형:</strong> {user.a4}
+        </ListGroup.Item>
+        <ListGroup.Item>
+          <strong>피부톤:</strong> {user.a5}
+        </ListGroup.Item>
+        <ListGroup.Item>
+          <strong>직업:</strong> {user.a6}
+        </ListGroup.Item>
+        <ListGroup.Item>
+          <strong>선호 색상:</strong> {user.a7}
+        </ListGroup.Item>
+        <ListGroup.Item>
+          <strong>선호 취향:</strong> {user.a8}
+        </ListGroup.Item>
+        <ListGroup.Item>
+          <strong>선호 핏:</strong> {user.a9}
         </ListGroup.Item>
       </StyledListGroup>
     </StyledCard>

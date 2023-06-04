@@ -174,10 +174,11 @@ def createform(request):
 
     datasearch = serializer.data
 
-    rdb_result = serializer.data[:2] 
+    rdb_result = serializer.data[:5] 
     print("ABC:",rdb_result)
     dataexpert_total = []
     datanewbie_total = []
+    dataresult_total = []
     for rdb_item in rdb_result:
         if not check_season:
             #compare_season.append(rdb_item['season'])
@@ -238,8 +239,6 @@ def createform(request):
         usersnewbie = User.objects.filter(id__in=names)
         serializernewbie = UserSerializer(usersnewbie, many=True)
 
-        dataexpert = datasearch + serializernewbie.data
-
         users1 = User.objects.filter(id__in=names, part__icontains="상의")[:1]  # 1개 넣은건 newbie용 확인용 나중에 3으로 교체
         users2 = User.objects.filter(id__in=names, part__icontains="하의")[:1]
         users3 = User.objects.filter(id__in=names, part__icontains="신발")[:1]
@@ -266,13 +265,23 @@ def createform(request):
         serializer5 = UserSerializer(users5, many=True)
         serializer6 = UserSerializer(users6, many=True)
 
-        datanewbie = serializer1.data + \
+        dataresult = serializer1.data + \
             serializer2.data + serializer3.data + serializer4.data + serializer5.data + serializer6.data
-        datanewbie_total += datanewbie
+        dataresult_total += dataresult
+    dataexpert_total = dataresult_total + datasearch
+    dataexpert_total = remove_duplicates(dataexpert_total, key=lambda x: x['id'])
+    
+    part_counts = {'상의': 0, '하의': 0, '신발': 0, '모자': 0, '아우터': 0, '포인트': 0}
+    for data in dataresult_total:
+        data_part = data['part']
+        if part_counts[data_part] < 3:  # 각 부위별로 최대 3개까지 선택
+            datanewbie_total.append(data)
+            part_counts[data_part] += 1
     datanewbie_total += datasearch
     datanewbie_total = remove_duplicates(datanewbie_total, key=lambda x: x['id'])
+    
     if button_value == 'E':   # expert
-        return render(request, 'folder/searchreal.html', {'users': dataexpert})#dataexpert
+        return render(request, 'folder/searchreal.html', {'users': dataexpert_total})#dataexpert
     elif button_value == 'S':   # search
         return render(request, 'folder/searchreal.html', {'users': datasearch})#datasearch
     else:       # 아무것도 안누르면 newbie가 기본값
@@ -307,7 +316,8 @@ def createform1(request):  # 리액트용
         # query = data.get("query")
         query_data = request.POST.getlist('query')
         query_data = color_conversion(query_data)
-        query_data = num_conversion(query_data)  
+        query_data = num_conversion(query_data)
+        button_value = request.POST.get('button')  
         check_season = [] 
         print(query_data)
 
@@ -336,8 +346,6 @@ def createform1(request):  # 리액트용
                 input1 = '여성'
             elif q == '공용':
                 input1 = '공용'
-            # elif q in gen:
-                # input1 = q
             elif q in part:
                 input2 = q
             elif q in color:
@@ -395,9 +403,10 @@ def createform1(request):  # 리액트용
 
         datasearch  = serializer.data
 
-        rdb_result  = serializer.data[:2] # 결과 몇개까지 볼건데
+        rdb_result  = serializer.data[:5] # 결과 몇개까지 볼건데
         dataexpert_total = []
         datanewbie_total = []
+        dataresult_total = []
         for rdb_item in rdb_result:
             if not check_season:
                 compare_season = rdb_item['season']
@@ -452,11 +461,6 @@ def createform1(request):  # 리액트용
             result = list(results)
             names = [record['e.name'] for record in result]
 
-            usersnewbie = User.objects.filter(id__in=names)
-            serializernewbie = UserSerializer(usersnewbie, many=True)
-
-            dataexpert = datasearch + serializernewbie.data
-
             users1 = User.objects.filter(id__in=names, part__icontains="상의")[:2]  # 1개 넣은건 newbie용 확인용 나중에 3으로 교체
             users2 = User.objects.filter(id__in=names, part__icontains="하의")[:1]
             users3 = User.objects.filter(id__in=names, part__icontains="신발")[:1]
@@ -483,14 +487,27 @@ def createform1(request):  # 리액트용
             serializer5 = UserSerializer(users5, many=True)
             serializer6 = UserSerializer(users6, many=True)
 
-            datanewbie = serializer1.data + \
+            dataresult = serializer1.data + \
                 serializer2.data + serializer3.data + serializer4.data + serializer5.data + serializer6.data
-            datanewbie_total += datanewbie
+            dataresult_total += dataresult
+        dataexpert_total = dataresult_total + datasearch
+        dataexpert_total = remove_duplicates(dataexpert_total, key=lambda x: x['id'])    
+
+        part_counts = {'상의': 0, '하의': 0, '신발': 0, '모자': 0, '아우터': 0, '포인트': 0}
+        for data in dataresult_total:
+            data_part = data['part']
+            if part_counts[data_part] < 3:  # 각 부위별로 최대 3개까지 선택
+                datanewbie_total.append(data)
+                part_counts[data_part] += 1
         datanewbie_total += datasearch
-        datanewbie_total = remove_duplicates(datanewbie_total, key=lambda x: x['id'])    
-
-        return JsonResponse({'users': datanewbie_total})
-
+        datanewbie_total = remove_duplicates(datanewbie_total, key=lambda x: x['id'])
+        
+        if button_value == 'E':   # expert
+            return JsonResponse({'users': dataexpert_total}, safe=False)
+        elif button_value == 'S':   # search
+            return JsonResponse({'users': datasearch}, safe=False)
+        else:       # 아무것도 안누르면 newbie가 기본값
+            return JsonResponse({'users': datanewbie_total}, safe=False)
     else:
         return JsonResponse({'result': 'error', 'message': 'Invalid request method'})
 
@@ -557,7 +574,7 @@ def inter(request):  # 리액트용
         recommend = serializer1.data + serializer2.data + \
             serializer3.data + serializer4.data + serializer5.data + serializer6.data
 
-        print(recommend)
+        print("추천추천추천", recommend)
 
         return JsonResponse({'users': recommend})
     else:
