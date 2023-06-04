@@ -16,8 +16,8 @@ def home1(request):
     return render(request, 'folder/base.html')
 
 gen = ["남성", "여성", "공용", "성별테스트"]
-part = ["상의", "하의", "신발", "모자", "아우터", "부위테스트"]
-season = ["봄", "여름", "가을", "겨울", "계절테스트"]
+part = ["상의", "하의", "신발", "모자", "아우터", "포인트"]
+season = ["봄", "여름", "가을", "겨울"]
 brand = ["보세", "뉴발란스", "지프", "나이키", "벨벳", "라코스테", "아디다스", "폴로", "게스"]
 price = int
 color = ["빨강", "파랑", "주황", "보라", "분홍", "갈색", "노랑", "초록", "하양", "검정", "회색","아이보리","색깔테스트"]
@@ -171,7 +171,7 @@ def createform(request):
 
     users = User.objects.filter(filters).order_by('-score')
     serializer = UserSerializer(users, many=True)
-
+    
     datasearch = serializer.data
 
     rdb_result = serializer.data[:5] 
@@ -400,11 +400,10 @@ def createform1(request):  # 리액트용
         users = User.objects.filter(filters).order_by('-score')
         print(filters)
         serializer = UserSerializer(users, many=True)
-
         datasearch  = serializer.data
 
         rdb_result  = serializer.data[:5] # 결과 몇개까지 볼건데
-        dataexpert_total = []
+        dataexpert_total1 = []
         datanewbie_total = []
         dataresult_total = []
         for rdb_item in rdb_result:
@@ -461,7 +460,7 @@ def createform1(request):  # 리액트용
             result = list(results)
             names = [record['e.name'] for record in result]
 
-            users1 = User.objects.filter(id__in=names, part__icontains="상의")[:2]  # 1개 넣은건 newbie용 확인용 나중에 3으로 교체
+            users1 = User.objects.filter(id__in=names, part__icontains="상의")[:1]  # 1개 넣은건 newbie용 확인용 나중에 3으로 교체
             users2 = User.objects.filter(id__in=names, part__icontains="하의")[:1]
             users3 = User.objects.filter(id__in=names, part__icontains="신발")[:1]
             users4 = User.objects.filter(id__in=names, part__icontains="모자")[:1]
@@ -490,8 +489,8 @@ def createform1(request):  # 리액트용
             dataresult = serializer1.data + \
                 serializer2.data + serializer3.data + serializer4.data + serializer5.data + serializer6.data
             dataresult_total += dataresult
-        dataexpert_total = dataresult_total + datasearch
-        dataexpert_total = remove_duplicates(dataexpert_total, key=lambda x: x['id'])    
+        dataexpert_total1 = datasearch + dataresult_total
+        dataexpert_total1 = remove_duplicates(dataexpert_total1, key=lambda x: x['id'])    
 
         part_counts = {'상의': 0, '하의': 0, '신발': 0, '모자': 0, '아우터': 0, '포인트': 0}
         for data in dataresult_total:
@@ -499,15 +498,15 @@ def createform1(request):  # 리액트용
             if part_counts[data_part] < 3:  # 각 부위별로 최대 3개까지 선택
                 datanewbie_total.append(data)
                 part_counts[data_part] += 1
-        datanewbie_total += datasearch
-        datanewbie_total = remove_duplicates(datanewbie_total, key=lambda x: x['id'])
+        datanewbie_total1 = datasearch + datanewbie_total
+        datanewbie_total1 = remove_duplicates(datanewbie_total1, key=lambda x: x['id'])
         
         if button_value == 'E':   # expert
-            return JsonResponse({'users': dataexpert_total}, safe=False)
+            return JsonResponse({'users': datanewbie_total1}, safe=False)
         elif button_value == 'S':   # search
             return JsonResponse({'users': datasearch}, safe=False)
         else:       # 아무것도 안누르면 newbie가 기본값
-            return JsonResponse({'users': datanewbie_total}, safe=False)
+            return JsonResponse({'users': datanewbie_total1}, safe=False)
     else:
         return JsonResponse({'result': 'error', 'message': 'Invalid request method'})
 
