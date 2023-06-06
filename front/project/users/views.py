@@ -113,7 +113,7 @@ def createform(request):
     input5 = None
     input6 = None
     input8 = []  # 태그
-    standard_score = 1
+    
     
     for q in query:
         if q == '남성' or q == '남자':
@@ -197,9 +197,10 @@ def createform(request):
         print("season : ",compare_season)
         gdbsearch = rdb_item['id']  # gdb서치용
         print("aaaaaaa:",gdbsearch)
+        #users.update(score=0)
         gdbsearch_data = User.objects.get(id=gdbsearch)
         gdbsearch_part = gdbsearch_data.part
-        users.update(score=0)
+        #users.update(score=0)
         driver = GraphDatabase.driver(
             'neo4j+s://9ff7bd23.databases.neo4j.io', auth=('neo4j', '123456789'))
         session = driver.session()
@@ -295,6 +296,9 @@ def createform(request):
     dataexpert_total1 = datasearch + dataexpert_total
     dataexpert_total1 = remove_duplicates(dataexpert_total1, key=lambda x: x['id'])   
     
+    aaa = User.objects.all()
+    aaa.update(score=0)
+    
     if button_value == 'E':   # expert
         return render(request, 'folder/searchreal.html', {'users': dataexpert_total1})#dataexpert
     elif button_value == 'S':   # search
@@ -353,7 +357,6 @@ def createform1(request):  # 리액트용
         input5 = None
         input6 = None
         input8 = []  # 태그
-        standard_score = 1
 
         for q in query1:
             if q == '남성' or q == '남자':
@@ -417,7 +420,8 @@ def createform1(request):  # 리액트용
                 user.score += len(matching_tags)
                 user.save()
                 print("점수 오른게 뭔데:",user.id)
-            filters &= Q(score__gte = standard_score)
+            #filters &= Q(score__gte = 1)
+            filters &= ~Q(score=0)
 
         users = User.objects.filter(filters).order_by('-score')
         print("그래서 정렬된게 뭔데:",users)
@@ -437,9 +441,10 @@ def createform1(request):  # 리액트용
             print("season : ",compare_season)        
             gdbsearch = rdb_item ['id']  # gdb서치용
             print(gdbsearch)
+            #users.update(score=0)
             gdbsearch_data = User.objects.get(id=gdbsearch)
             gdbsearch_part = gdbsearch_data.part
-            users.update(score=0)
+            
             driver = GraphDatabase.driver(
                 'neo4j+s://9ff7bd23.databases.neo4j.io', auth=('neo4j', '123456789'))
             session = driver.session()
@@ -527,6 +532,8 @@ def createform1(request):  # 리액트용
         dataexpert_total1 = datasearch + dataexpert_total
         dataexpert_total1 = remove_duplicates(dataexpert_total1, key=lambda x: x['id'])   
         print("익스퍼트 토탈좀 보자: ", dataexpert_total)
+        print("serach좀 보자 : ", datasearch)
+        aaa.update(score=0)
         if button_value == 'E':   # expert
             return JsonResponse({'users': dataexpert_total1}, safe=False)
         elif button_value == 'S':   # search
@@ -567,20 +574,20 @@ def inter(request):  # 리액트용
                 """
         else: # 아이템이 중복일 때. 즉, 연결된 set가 여러개일 때.
             q = f"""
-                MATCH (a:Node {{name: {interid}}})-[link:link]-(b:Set)
-                WITH a, b
-                ORDER BY b.view ASC
+                MATCH (a:Node {{name: {interid}}})-[link:link]-(d:Set)
+                WITH a, d
+                ORDER BY d.view ASC
                 LIMIT 1
-                SET b.view = b.view + 1
-                WITH a, b
-                MATCH (b)-[link:link]-(e:Node)
-                RETURN e.name, b.set
+                SET d.view = d.view + 1
+                WITH a, d
+                MATCH (d)-[link:link]-(e:Node)
+                RETURN e.name, d.set
                 """  
         results = session.run(q)
         result = list(results)
         
         names = [record.get('e.name') for record in result]
-        setnum_total = [record.get('b.set') for record in result]
+        setnum_total = [record.get('d.set') for record in result]
         setnum = list(set(setnum_total))
         print("setnum:",setnum)
         print(names)
@@ -603,6 +610,6 @@ def inter(request):  # 리액트용
 
         print("추천추천추천", recommend )
         print("setnum이 뭘까 : ",setnum)
-        return JsonResponse({'users': recommend, 'setnum' : setnum})
+        return JsonResponse({'users': recommend, 'setnum' : str(setnum)})
     else:
         return JsonResponse({'result': 'error', 'message': 'Invalid request method'})

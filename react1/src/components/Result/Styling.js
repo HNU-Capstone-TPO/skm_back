@@ -7,7 +7,9 @@ import axios from "axios";
 const InfoBox = ({ users, setSelectedProduct, index }) => {
   const { users: savedUsers, setUsers: setSavedUsers } = useContext(SaveItemContext);
   const { recommend, setRecommend } = useContext(SaveRecommendContext);
-
+  const handleReset = () => {
+    setRecommend([]);
+  };
 
   const handleCheckboxChange = (e, user) => {
     setSelectedProduct((prevState) => {
@@ -32,19 +34,23 @@ const InfoBox = ({ users, setSelectedProduct, index }) => {
   }; /*이부분에서 user랑 ...prevState 바꾸면 역순으로 저장*/
 
   const handleSaveRecommend = (user) => {
-
     axios.post("http://127.0.0.1:8000/inter/", { userId: user.id })
-      .then((response) => {
+     .then((response) => {
         console.log(response.data);
-        setRecommend((prevState) => [[...response.data.users, user], ...prevState]);
+        setRecommend((prevState) => {
+          const newRecommend = prevState.filter((item) => item.namea!== response.data.setnum);
+          newRecommend.push({ namea: response.data.setnum, products: response.data.users });
+          return newRecommend;
+        });
       })
-      .catch((error) => {
+     .catch((error) => {
         console.error(error);
       });
   }
 
   return (
     <div className="info-box">
+      <button onClick={handleReset}>Save</button>
       {users.map((user) => (
         <div key={user.id}>
           <h2>{user.name}</h2>
@@ -69,7 +75,7 @@ const CustomButton = ({ onClick, children }) => {
 
 const Styling = ({ users=[], setSelectedProducts }) => {
   
-  const category = ['상의', '하의', '신발', '모자', '아우터', '부위테스트'];
+  const category = ['상의', '하의', '신발', '모자', '아우터', '포인트'];
   //const [products, setProducts] = useState([]);
   const [boxes, setBoxes] = useState([false, false, false, false, false, false]);
   const [selectedProduct, setSelectedProduct] = useState([null, null, null, null, null, null]);
