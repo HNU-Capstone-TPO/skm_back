@@ -113,7 +113,8 @@ def createform(request):
     input5 = None
     input6 = None
     input8 = []  # 태그
-
+    standard_score = 1
+    
     for q in query:
         if q == '남성' or q == '남자':
             input1 = '남성'
@@ -163,11 +164,18 @@ def createform(request):
         filters &= Q(price__gte=min_price) & Q(price__lte=max_price)        
         #filters &= Q(price__lte=max) & Q(price__gte=min)
     if input8:
+        matched_users = []
         for q in input8:
+            if not q:
+                continue
             users = User.objects.filter(tag__icontains=q)
-            users.update(score=F('score') + 1)
-
-        filters |= Q(tag__icontains=input8)
+            matched_users += users
+        matched_users = [user for user in matched_users if any(q in user.tag for q in input8)]
+        for user in matched_users:
+            matching_tags = [tag for tag in user.tag if tag in input8]
+            user.score += len(matching_tags)
+            user.save()
+        filters &= Q(score__gte = standard_score)
 
     users = User.objects.filter(filters).order_by('-score')
     serializer = UserSerializer(users, many=True)
@@ -179,6 +187,7 @@ def createform(request):
     dataexpert_total = []
     datanewbie_total = []
     dataresult_total = []
+    dataexpert_total1 = []
     for rdb_item in rdb_result:
         if not check_season:
             #compare_season.append(rdb_item['season'])
@@ -268,24 +277,30 @@ def createform(request):
         dataresult = serializer1.data + \
             serializer2.data + serializer3.data + serializer4.data + serializer5.data + serializer6.data
         dataresult_total += dataresult
-    dataexpert_total = dataresult_total + datasearch
-    dataexpert_total = remove_duplicates(dataexpert_total, key=lambda x: x['id'])
-    
-    part_counts = {'상의': 0, '하의': 0, '신발': 0, '모자': 0, '아우터': 0, '포인트': 0}
+        
+    n_part_counts = {'상의': 0, '하의': 0, '신발': 0, '모자': 0, '아우터': 0, '포인트': 0}
+    e_part_counts = {'상의': 0, '하의': 0, '신발': 0, '모자': 0, '아우터': 0, '포인트': 0}
     for data in dataresult_total:
         data_part = data['part']
-        if part_counts[data_part] < 3:  # 각 부위별로 최대 3개까지 선택
+        if n_part_counts[data_part] < 3:  # 각 부위별로 최대 3개까지 선택
             datanewbie_total.append(data)
-            part_counts[data_part] += 1
-    datanewbie_total += datasearch
-    datanewbie_total = remove_duplicates(datanewbie_total, key=lambda x: x['id'])
+            n_part_counts[data_part] += 1
+        if e_part_counts[data_part] < 5:  # 각 부위별로 최대 3개까지 선택
+            dataexpert_total.append(data)
+            e_part_counts[data_part] += 1
+            
+    datanewbie_total1 = datasearch + datanewbie_total
+    datanewbie_total1 = remove_duplicates(datanewbie_total1, key=lambda x: x['id'])
+    
+    dataexpert_total1 = datasearch + dataexpert_total
+    dataexpert_total1 = remove_duplicates(dataexpert_total1, key=lambda x: x['id'])   
     
     if button_value == 'E':   # expert
-        return render(request, 'folder/searchreal.html', {'users': dataexpert_total})#dataexpert
+        return render(request, 'folder/searchreal.html', {'users': dataexpert_total1})#dataexpert
     elif button_value == 'S':   # search
         return render(request, 'folder/searchreal.html', {'users': datasearch})#datasearch
     else:       # 아무것도 안누르면 newbie가 기본값
-        return render(request, 'folder/searchreal.html', {'users': datanewbie_total})
+        return render(request, 'folder/searchreal.html', {'users': datanewbie_total1})
 
 # 중복 제거를 위한 함수 정의
 def remove_duplicates(seq, key=lambda x: x):
@@ -338,6 +353,7 @@ def createform1(request):  # 리액트용
         input5 = None
         input6 = None
         input8 = []  # 태그
+        standard_score = 1
 
         for q in query1:
             if q == '남성' or q == '남자':
@@ -364,7 +380,7 @@ def createform1(request):  # 리액트용
         print(input1, input2, input4, input8)
 
         input8 = list(set(input8))
-
+        print("아니 그래서 input8이 뭔데:",input8)
         filters = Q()
         if input1:
             filters &= Q(gender__icontains=input1)
@@ -389,22 +405,29 @@ def createform1(request):  # 리액트용
             filters &= Q(price__gte=min_price) & Q(price__lte=max_price)        
             #filters &= Q(price__lte=max) & Q(price__gte=min)
         if input8:
+            matched_users = []
             for q in input8:
+                if not q:
+                    continue
                 users = User.objects.filter(tag__icontains=q)
-                users.update(score=F('score') + 1)
-
-            filters |= Q(tag__icontains=input8)
-            print(filters)
-            print(User.objects.all())
+                matched_users += users
+            matched_users = [user for user in matched_users if any(q in user.tag for q in input8)]
+            for user in matched_users:
+                matching_tags = [tag for tag in user.tag if tag in input8]
+                user.score += len(matching_tags)
+                user.save()
+                print("점수 오른게 뭔데:",user.id)
+            filters &= Q(score__gte = standard_score)
 
         users = User.objects.filter(filters).order_by('-score')
+        print("그래서 정렬된게 뭔데:",users)
         print(filters)
         serializer = UserSerializer(users, many=True)
         datasearch  = serializer.data
 
         rdb_result  = serializer.data[:5] # 결과 몇개까지 볼건데
-        dataexpert_total1 = []
         datanewbie_total = []
+        dataexpert_total = []
         dataresult_total = []
         for rdb_item in rdb_result:
             if not check_season:
@@ -414,7 +437,6 @@ def createform1(request):  # 리액트용
             print("season : ",compare_season)        
             gdbsearch = rdb_item ['id']  # gdb서치용
             print(gdbsearch)
-            # users.update(score=0) #그냥 처음 불러올때 초기화 하는게 나을지도?
             gdbsearch_data = User.objects.get(id=gdbsearch)
             gdbsearch_part = gdbsearch_data.part
             users.update(score=0)
@@ -489,20 +511,24 @@ def createform1(request):  # 리액트용
             dataresult = serializer1.data + \
                 serializer2.data + serializer3.data + serializer4.data + serializer5.data + serializer6.data
             dataresult_total += dataresult
-        dataexpert_total1 = datasearch + dataresult_total
-        dataexpert_total1 = remove_duplicates(dataexpert_total1, key=lambda x: x['id'])    
 
-        part_counts = {'상의': 0, '하의': 0, '신발': 0, '모자': 0, '아우터': 0, '포인트': 0}
+        n_part_counts = {'상의': 0, '하의': 0, '신발': 0, '모자': 0, '아우터': 0, '포인트': 0}
+        e_part_counts = {'상의': 0, '하의': 0, '신발': 0, '모자': 0, '아우터': 0, '포인트': 0}
         for data in dataresult_total:
             data_part = data['part']
-            if part_counts[data_part] < 3:  # 각 부위별로 최대 3개까지 선택
+            if n_part_counts[data_part] < 3:  # 각 부위별로 최대 3개까지 선택
                 datanewbie_total.append(data)
-                part_counts[data_part] += 1
+                n_part_counts[data_part] += 1
+            if e_part_counts[data_part] < 5:  # 각 부위별로 최대 3개까지 선택
+                dataexpert_total.append(data)
+                e_part_counts[data_part] += 1
         datanewbie_total1 = datasearch + datanewbie_total
         datanewbie_total1 = remove_duplicates(datanewbie_total1, key=lambda x: x['id'])
-        
+        dataexpert_total1 = datasearch + dataexpert_total
+        dataexpert_total1 = remove_duplicates(dataexpert_total1, key=lambda x: x['id'])   
+        print("익스퍼트 토탈좀 보자: ", dataexpert_total)
         if button_value == 'E':   # expert
-            return JsonResponse({'users': datanewbie_total1}, safe=False)
+            return JsonResponse({'users': dataexpert_total1}, safe=False)
         elif button_value == 'S':   # search
             return JsonResponse({'users': datasearch}, safe=False)
         else:       # 아무것도 안누르면 newbie가 기본값
@@ -537,7 +563,7 @@ def inter(request):  # 리액트용
                 SET d.view = d.view + 1
                 WITH d
                 MATCH (d)-[link:link]-(e:Node)
-                RETURN e.name
+                RETURN e.name, d.set
                 """
         else: # 아이템이 중복일 때. 즉, 연결된 set가 여러개일 때.
             q = f"""
@@ -548,13 +574,15 @@ def inter(request):  # 리액트용
                 SET b.view = b.view + 1
                 WITH a, b
                 MATCH (b)-[link:link]-(e:Node)
-                RETURN e.name
+                RETURN e.name, b.set
                 """  
         results = session.run(q)
         result = list(results)
         
         names = [record.get('e.name') for record in result]
-        
+        setnum_total = [record.get('b.set') for record in result]
+        setnum = list(set(setnum_total))
+        print("setnum:",setnum)
         print(names)
 
         users1 = User.objects.filter(id__in=names, part__icontains="상의")[:1]  # 1개 넣은건 newbie용 확인용 나중에 3으로 교체
@@ -573,8 +601,8 @@ def inter(request):  # 리액트용
         recommend = serializer1.data + serializer2.data + \
             serializer3.data + serializer4.data + serializer5.data + serializer6.data
 
-        print("추천추천추천", recommend)
-
-        return JsonResponse({'users': recommend})
+        print("추천추천추천", recommend )
+        print("setnum이 뭘까 : ",setnum)
+        return JsonResponse({'users': recommend, 'setnum' : setnum})
     else:
         return JsonResponse({'result': 'error', 'message': 'Invalid request method'})
