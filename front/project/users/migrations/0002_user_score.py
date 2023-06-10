@@ -5,31 +5,36 @@ import csv, os
 
 def add_users(apps, schema_editor):
     User = apps.get_model('users', 'User')
-    csv_file = "C:/Users/sin15/OneDrive/바탕 화면/r_data.csv"#os.path.expanduser("~/Desktop/cl_data.csv")
+    csv_file = "C:/Users/sin15/OneDrive/바탕 화면/r_data.csv"
     with open(csv_file, 'r') as f:
         reader = csv.reader(f)
         for row in reader:
+            age_values = row[13].split(',') if row[13] else []  # 빈 문자열인 경우 빈 리스트로 처리
+            age = [int(value) for value in age_values]  # 문자열을 정수로 변환
             user = User(
-                id=row[0],
+                id=int(row[0]),
                 name=row[1],
                 rink=row[2],
-                image = row[3],
-                modelimage = row[4],
-                gender = row[5].split(','),
-                color = row[6].split(','),
+                image=row[3],
+                modelimage=row[4],
+                gender=row[5].split(','),
+                color=row[6].split(','),
                 part=row[7],
                 season=row[8].split(','),
                 brand=row[9].split(','),
-                price=row[10],
+                price=int(row[10]),
                 tag=row[11].split(','),
-                youtube=row[12],
-                blog = row[13],
-                y_name = row[14],
-                b_name = row[15],
-                score=row[16]
+                situation=row[12].split(','),
+                age=age,  # 정수 리스트로 변환된 값 사용
+                youtube=row[14],
+                blog=row[15],
+                y_name=row[16],
+                b_name=row[17],
+                score=int(row[18])
             )
-            user.full_clean() # 데이터 유효성 검사
-            user.save()         
+            user.full_clean()
+            user.save()
+ 
   
 class Migration(migrations.Migration):
 
@@ -45,4 +50,3 @@ class Migration(migrations.Migration):
         ),
         migrations.RunPython(add_users),
     ]
-

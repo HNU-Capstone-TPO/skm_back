@@ -18,6 +18,8 @@ class User(models.Model):
     brand = ArrayField(models.CharField(max_length=20), blank=True)
     price = models.IntegerField(default=0, blank=True)
     tag = ArrayField(models.CharField(max_length=100), blank=True)
+    situation = ArrayField(models.CharField(max_length=100), blank=True)
+    age = ArrayField(models.IntegerField(), blank=True)
     youtube = models.URLField(max_length=1024, blank=True)
     blog = models.URLField(max_length=1024, blank=True)
     y_name = models.CharField(max_length=255, blank=True)

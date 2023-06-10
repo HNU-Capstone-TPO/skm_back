@@ -15,7 +15,10 @@ import re
 def home1(request):
     return render(request, 'folder/base.html')
 
-gen = ["남성", "여성", "공용", "성별테스트"]
+gen = ["남성", "여성", "공용"]
+man = ["남성", "남자"]
+woman = ["여성", "여자"]
+unisex = ["공용", "커플"]
 part = ["상의", "하의", "신발", "모자", "아우터", "포인트"]
 season = ["봄", "여름", "가을", "겨울"]
 brand = ["보세", "뉴발란스", "지프", "나이키", "벨벳", "라코스테", "아디다스", "폴로", "게스"]
@@ -33,7 +36,11 @@ black = ["검정색","검색", "까만색", "검은색", "흑색", "고동색", 
 brown = ["갈색","황갈색", "탠", "황토색","금색", "누런색", "누렁색", "브라운", "brown", "beige", "베이지", "연한베이지", "연갈색", "다크브라운", "흑갈색"]
 ivory = ["아이보리", "ivory", 'cream', '크림색']
 gray = ["회색", "짙회색", "연회색", "그레이", "gray", "청회색", "은색"]
-
+situation = ["데일리", "일상","데이트","소개팅","미팅","기념일", "여행","면접", "결혼식", "장례식","비즈니스","학교", "캠퍼스", 
+             "공대", "바닷가", "피서", "산", "아웃도어","산책", "스포츠", "운동", "트레이닝", "트래킹", "활동", "러닝", "축구", "야구", "농구", "골프", "소풍", "나들이", "꽃구경"]
+condition = ["대학생", "고등학생", "학생", "직장인", "회사원", "교수","커플", "남친룩", "여친룩", "주말룩","꾸안꾸", "캐주얼", "미니멀", "댄디", "깔끔", 
+             "레트로", "감성", "포멀", "스포티", "스트릿", "개성","청량", "쿨", "기본", "베이직", "편한", "아메카지", "밀리터리", "하이패션", "페니", "빈티지", "라이프스타일", "모던"]
+    
 def get_value_from_string(string):
     number_regex = r"\d+"
     match = re.search(number_regex, string)
@@ -54,45 +61,46 @@ def num_conversion(query):
             new_query.append(string)
     return new_query
 
+def gen_conversion(query, ):
+    new_query = []
+    for q in query:
+        if q in man:
+            new_query.append("남성")
+        elif q in woman:    
+            new_query.append("여성")
+        elif q in unisex:
+            new_query.append("공용")
+        else:
+            new_query.append(q)
+    return new_query
+            
 def color_conversion(query):
     new_query = []
     for q in query:
         if q in red:
-            new_query.append(q)
-            new_query.append(q.replace(q, "빨강"))
+            new_query.append("빨강")
         elif q in orange:
-            new_query.append(q)
-            new_query.append(q.replace(q, "주황"))
+            new_query.append("주황")
         elif q in yellow:
-            new_query.append(q)
-            new_query.append(q.replace(q, "노랑"))
+            new_query.append("노랑")
         elif q in green:
-            new_query.append(q)
-            new_query.append(q.replace(q, "초록"))
+            new_query.append("초록")
         elif q in blue:
-            new_query.append(q)
-            new_query.append(q.replace(q, "파랑"))
+            new_query.append("파랑")
         elif q in purple:
-            new_query.append(q)
-            new_query.append(q.replace(q, "보라"))
+            new_query.append("보라")
         elif q in pink:
-            new_query.append(q)
-            new_query.append(q.replace(q, "분홍"))
+            new_query.append("분홍")
         elif q in brown:
-            new_query.append(q)
-            new_query.append(q.replace(q, "갈색"))
+            new_query.append("갈색")
         elif q in white:
-            new_query.append(q)
-            new_query.append(q.replace(q, "하양"))
+            new_query.append("하양")
         elif q in black:
-            new_query.append(q)
-            new_query.append(q.replace(q, "검정"))
+            new_query.append("검정")
         elif q in gray:
-            new_query.append(q)
-            new_query.append(q.replace(q, "회색"))
+            new_query.append("회색")
         elif q in ivory:
-            new_query.append(q)
-            new_query.append(q.replace(q, "아이보리"))
+            new_query.append("아이보리")
         else:
             new_query.append(q)
     return new_query
@@ -100,7 +108,8 @@ def color_conversion(query):
 def createform(request):
     query = request.POST.getlist('query[]')
     query = color_conversion(query)
-    query = num_conversion(query)    
+    query = num_conversion(query)
+    query = gen_conversion(query)    
     button_value = request.POST.get('button')
     check_season = []
     print(query)
@@ -108,47 +117,53 @@ def createform(request):
     gdbsearch = 0
     input1 = None
     input2 = None
-    input3 = None
-    input4 = None
+    input3 = []
+    input4 = []
     input5 = None
     input6 = None
+    input7 = []
+    input9 = []
     input8 = []  # 태그
     
-    
     for q in query:
-        if q == '남성' or q == '남자':
-            input1 = '남성'
-        elif q == '여성' or q == '여자':
-            input1 = '여성'
-        elif q == '공용':
-            input1 = '공용'
+        if q in gen:
+            input1 = q
         elif q in part:
             input2 = q
         elif q in color:
-            input3 = q
+            input3.append(q)
         elif q in season:
-            input4 = q
-            check_season.append(input4)
+            input4.append(q)
+            check_season.append(q)
         elif q in brand:
             input5 = q       
         elif isinstance(q, int): 
             print(type(q))
             input6 = q
+        elif q in situation:
+            input7.append(q)
+        elif q in condition:
+            input9.append(q)
         else:
             input8.append(q)
 
+    input3 = list(set(input3))
+    input4 = list(set(input4))
+    input7 = list(set(input7))
+    input9 = list(set(input9))
     input8 = list(set(input8))
 
     filters = Q()
     if input1:
+        #for i in input1:
         filters &= Q(gender__icontains=input1)
-        print("Filter gender:", filters)
     if input2:
         filters &= Q(part__icontains=input2)
     if input3:
         filters &= Q(color__icontains=input3)
     if input4:
-        filters &= Q(season__icontains=input4)
+        #for i in input4:
+        filters |= Q(season__icontains=input4)
     if input5:
         filters &= Q(brand__icontains=input5)
     if input6:
@@ -163,6 +178,10 @@ def createform(request):
             max_price = input6 + 50000
         filters &= Q(price__gte=min_price) & Q(price__lte=max_price)        
         #filters &= Q(price__lte=max) & Q(price__gte=min)
+    if input7: # 상황
+        filters |= Q(situation__icontains=input7)
+    if input9: # 조건
+        filters |= Q(situation__icontains=input9)    
     if input8:
         matched_users = []
         for q in input8:
@@ -175,11 +194,11 @@ def createform(request):
             matching_tags = [tag for tag in user.tag if tag in input8]
             user.score += len(matching_tags)
             user.save()
-        filters &= Q(score__gte = standard_score)
-
+        filters &= ~Q(score=0)
+    
     users = User.objects.filter(filters).order_by('-score')
     serializer = UserSerializer(users, many=True)
-    
+    print("왜 안나와:", users)
     datasearch = serializer.data
 
     rdb_result = serializer.data[:5] 
@@ -326,19 +345,13 @@ class UserListsCreate(generics.ListCreateAPIView):
 class UserRetrieveUpdateDelete(generics.RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-
-
+    
 @api_view(['POST'])
 def createform1(request):  # 리액트용
     if request.method == 'POST':
-        # data = json.loads(request.body)
-        # query = data.get("query")
         query_data = request.POST.getlist('query')
-        query_data = color_conversion(query_data)
-        query_data = num_conversion(query_data)
         button_value = request.POST.get('button')  
         check_season = [] 
-        print(query_data)
 
         aaa = User.objects.all()
         aaa.update(score=0)
@@ -346,53 +359,78 @@ def createform1(request):  # 리액트용
         query1 = []
         for item in query_data:
             query1.extend(item.split(','))
-
+        query1 = color_conversion(query1)
+        query1 = num_conversion(query1)
+        query1 = gen_conversion(query1)
         print(query1)
 
         gdbsearch = 0
         input1 = None
         input2 = None
-        input3 = None
-        input4 = None
+        input3 = []
+        input4 = []
         input5 = None
         input6 = None
+        input7 = []
+        input9 = []
         input8 = []  # 태그
 
         for q in query1:
-            if q == '남성' or q == '남자':
-                input1 = '남성'
-            elif q == '여성' or q == '여자':
-                input1 = '여성'
-            elif q == '공용':
-                input1 = '공용'
+            if q in gen:
+                input1 = q
             elif q in part:
                 input2 = q
             elif q in color:
-                input3 = q
+                input3.append(q) 
             elif q in season:
-                input4 = q
-                check_season.append(input4)
+                input4.append(q)
+                check_season.append(q)
             elif q in brand:
                 input5 = q
             elif isinstance(q, int): 
                 print(type(q))
                 input6 = q
+            elif q in situation:
+                input7.append(q)
+            elif q in condition:
+                input9.append(q)
             else:
                 input8.append(q)
-
-        print(input1, input2, input4, input8)
-
+                
+        input3 = list(set(input3))
+        input4 = list(set(input4))
+        input7 = list(set(input7))
+        input9 = list(set(input9))
         input8 = list(set(input8))
-        print("아니 그래서 input8이 뭔데:",input8)
+        
+        print("아니 검색 성별이 뭔데:",input1)
+        print("아니 검색 부위가 뭔데:",input2)
+        print("아니 검색 색깔이 뭔데:",input3)
+        print("아니 검색 계절이 뭔데:",input4)
+        print("아니 검색 브랜드 뭔데:",input5)
+        print("아니 검색 상황이 뭔데:",input7)
+        print("아니 검색 조건이 뭔데:", input9)
+        print("아니 검색 태그가 뭔데:",input8)
+        
         filters = Q()
         if input1:
             filters &= Q(gender__icontains=input1)
         if input2:
             filters &= Q(part__icontains=input2)
         if input3:
-            filters &= Q(color__icontains=input3)
+            color1 = []
+            for q in input3:
+                ddd = User.objects.filter(color__icontains=q)
+                color1 += ddd
+            color1 = [user for user in color1 if any(q in user.color for q in input3)]
+            filters &= Q(id__in=[user.id for user in color1])
         if input4:
-            filters &= Q(season__icontains=input4)
+            season1 = []
+            for q in input4:
+                fff = User.objects.filter(season__icontains=q)
+                season1 += fff
+            season1 = [user for user in season1 if any(q in user.season for q in input4)]
+            filters &= Q(id__in=[user.id for user in season1])
         if input5:
             filters &= Q(brand__icontains=input5)
         if input6:
@@ -405,9 +443,24 @@ def createform1(request):  # 리액트용
             else:
                 min_price = input6 - 50000
                 max_price = input6 + 50000
-            filters &= Q(price__gte=min_price) & Q(price__lte=max_price)        
-            #filters &= Q(price__lte=max) & Q(price__gte=min)
-        if input8:
+            filters &= Q(price__gte=min_price) & Q(price__lte=max_price)     
+        if input7: # 상황
+            situation1 = []
+            for q in input7:
+                bbb = User.objects.filter(situation__icontains=q)
+                situation1 += bbb
+            situation1 = [user for user in situation1 if any(q in user.situation for q in input7)]
+            filters &= Q(id__in=[user.id for user in situation1])
+            #print("input7 필터링:", situation1)
+        if input9:  # 추가된 부분
+            condition1 = []
+            for q in input9:
+                ccc = User.objects.filter(situation__icontains=q)
+                condition1 += ccc
+            condition1 = [user for user in condition1 if any(q in user.situation for q in input9)]
+            filters &= Q(id__in=[user.id for user in condition1])  
+            #print("input9 필터링:", condition1)
+        if input8: # 태그
             matched_users = []
             for q in input8:
                 if not q:
@@ -420,13 +473,24 @@ def createform1(request):  # 리액트용
                 user.score += len(matching_tags)
                 user.save()
                 print("점수 오른게 뭔데:",user.id)
+                print("몇점올랐는데:",len(matching_tags))
             #filters &= Q(score__gte = 1)
             filters &= ~Q(score=0)
 
         users = User.objects.filter(filters).order_by('-score')
+        '''if input2 == None:
+            input2 = users.first().part
+            print("첫 아이템 부위가 뭔데:",users.first().part)'''
         print("그래서 정렬된게 뭔데:",users)
-        print(filters)
-        serializer = UserSerializer(users, many=True)
+        if users.exists():
+            first_user = users.first()
+            part_value = first_user.part
+            print("첫 번째 사용자의 part 값:", part_value)
+            filtered_users = users.filter(part=part_value)
+        print("최종 정렬: ",filtered_users)
+                
+        #print(filters)
+        serializer = UserSerializer(filtered_users, many=True)
         datasearch  = serializer.data
 
         rdb_result  = serializer.data[:5] # 결과 몇개까지 볼건데
@@ -531,8 +595,8 @@ def createform1(request):  # 리액트용
         datanewbie_total1 = remove_duplicates(datanewbie_total1, key=lambda x: x['id'])
         dataexpert_total1 = datasearch + dataexpert_total
         dataexpert_total1 = remove_duplicates(dataexpert_total1, key=lambda x: x['id'])   
-        print("익스퍼트 토탈좀 보자: ", dataexpert_total)
-        print("serach좀 보자 : ", datasearch)
+        #print("익스퍼트 토탈좀 보자: ", dataexpert_total)
+        #print("serach좀 보자 : ", datasearch)
         aaa.update(score=0)
         if button_value == 'E':   # expert
             return JsonResponse({'users': dataexpert_total1}, safe=False)
@@ -613,3 +677,5 @@ def inter(request):  # 리액트용
         return JsonResponse({'users': recommend, 'setnum' : str(setnum)})
     else:
         return JsonResponse({'result': 'error', 'message': 'Invalid request method'})
+    
+    

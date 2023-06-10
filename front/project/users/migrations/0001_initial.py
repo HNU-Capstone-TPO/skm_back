@@ -27,6 +27,8 @@ class Migration(migrations.Migration):
                 ('brand', django.contrib.postgres.fields.ArrayField(base_field=models.CharField(max_length=20), blank=True, size=None)),
                 ('price', models.IntegerField(default=0)),
                 ('tag', django.contrib.postgres.fields.ArrayField(base_field=models.CharField(max_length=100), blank=True, size=None)),
+                ('situation', django.contrib.postgres.fields.ArrayField(base_field=models.CharField(max_length=100), blank=True, size=None)),
+                ('age', django.contrib.postgres.fields.ArrayField(base_field=models.IntegerField(), blank=True, size=None)),
                 ('youtube', models.URLField(max_length=1024, blank=True)),
                 ('blog', models.URLField(max_length=1024, blank=True)),
                 ('y_name', models.CharField(max_length=255)),
