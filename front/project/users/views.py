@@ -40,7 +40,8 @@ situation = ["데일리", "일상","데이트","소개팅","미팅","기념일",
              "공대", "바닷가", "피서", "산", "아웃도어","산책", "스포츠", "운동", "트레이닝", "트래킹", "활동", "러닝", "축구", "야구", "농구", "골프", "소풍", "나들이", "꽃구경"]
 condition = ["대학생", "고등학생", "학생", "직장인", "회사원", "교수","커플", "남친룩", "여친룩", "주말룩","꾸안꾸", "캐주얼", "미니멀", "댄디", "깔끔", 
              "레트로", "감성", "포멀", "스포티", "스트릿", "개성","청량", "쿨", "기본", "베이직", "편한", "아메카지", "밀리터리", "하이패션", "페니", "빈티지", "라이프스타일", "모던"]
-    
+age = [10, 20, 30, 40, 50]   # price랑 겹치는데 어카지..?
+
 def get_value_from_string(string):
     number_regex = r"\d+"
     match = re.search(number_regex, string)
@@ -117,6 +118,7 @@ def createform(request):
     gdbsearch = 0
     input1 = None
     input2 = None
+    input_age = None
     input3 = []
     input4 = []
     input5 = None
@@ -138,8 +140,10 @@ def createform(request):
         elif q in brand:
             input5 = q       
         elif isinstance(q, int): 
-            print(type(q))
-            input6 = q
+            if q in age:
+                input_age = q
+            else:
+                input6 = q
         elif q in situation:
             input7.append(q)
         elif q in condition:
@@ -155,15 +159,25 @@ def createform(request):
 
     filters = Q()
     if input1:
-        #for i in input1:
         filters &= Q(gender__icontains=input1)
     if input2:
         filters &= Q(part__icontains=input2)
+    if input_age:
+        filters &= Q(age__icontains=input2)
     if input3:
-        filters &= Q(color__icontains=input3)
+        color1 = []
+        for q in input3:
+            ddd = User.objects.filter(color__icontains=q)
+            color1 += ddd
+        color1 = [user for user in color1 if any(q in user.color for q in input3)]
+        filters &= Q(id__in=[user.id for user in color1])
     if input4:
-        #for i in input4:
-        filters |= Q(season__icontains=input4)
+        season1 = []
+        for q in input4:
+            fff = User.objects.filter(season__icontains=q)
+            season1 += fff
+        season1 = [user for user in season1 if any(q in user.season for q in input4)]
+        filters &= Q(id__in=[user.id for user in season1])
     if input5:
         filters &= Q(brand__icontains=input5)
     if input6:
@@ -176,12 +190,22 @@ def createform(request):
         else:
             min_price = input6 - 50000
             max_price = input6 + 50000
-        filters &= Q(price__gte=min_price) & Q(price__lte=max_price)        
-        #filters &= Q(price__lte=max) & Q(price__gte=min)
+        filters &= Q(price__gte=min_price) & Q(price__lte=max_price)     
     if input7: # 상황
-        filters |= Q(situation__icontains=input7)
-    if input9: # 조건
-        filters |= Q(situation__icontains=input9)    
+        situation1 = []
+        for q in input7:
+            bbb = User.objects.filter(situation__icontains=q)
+            situation1 += bbb
+        situation1 = [user for user in situation1 if any(q in user.situation for q in input7)]
+        filters &= Q(id__in=[user.id for user in situation1])
+        #print("input7 필터링:", situation1)
+    if input9:  # 추가된 부분
+        condition1 = []
+        for q in input9:
+            ccc = User.objects.filter(situation__icontains=q)
+            condition1 += ccc
+        condition1 = [user for user in condition1 if any(q in user.situation for q in input9)]
+        filters &= Q(id__in=[user.id for user in condition1])  
     if input8:
         matched_users = []
         for q in input8:
@@ -197,8 +221,14 @@ def createform(request):
         filters &= ~Q(score=0)
     
     users = User.objects.filter(filters).order_by('-score')
-    serializer = UserSerializer(users, many=True)
-    print("왜 안나와:", users)
+    if users.exists():
+        first_user = users.first()
+        part_value = first_user.part
+        print("첫 번째 사용자의 part 값:", part_value)
+        filtered_users = users.filter(part=part_value)
+    print("최종 정렬: ",filtered_users)
+    
+    serializer = UserSerializer(filtered_users, many=True)
     datasearch = serializer.data
 
     rdb_result = serializer.data[:5] 
@@ -367,6 +397,7 @@ def createform1(request):  # 리액트용
         gdbsearch = 0
         input1 = None
         input2 = None
+        input_age = None
         input3 = []
         input4 = []
         input5 = None
@@ -388,7 +419,10 @@ def createform1(request):  # 리액트용
             elif q in brand:
                 input5 = q
             elif isinstance(q, int): 
-                print(type(q))
+                if q in age:
+                    input_age = q
+                else:
+                    input6 = q
                 input6 = q
             elif q in situation:
                 input7.append(q)
@@ -405,9 +439,11 @@ def createform1(request):  # 리액트용
         
         print("아니 검색 성별이 뭔데:",input1)
         print("아니 검색 부위가 뭔데:",input2)
+        print("아니 검색 연령이 뭔데:",input_age)
         print("아니 검색 색깔이 뭔데:",input3)
         print("아니 검색 계절이 뭔데:",input4)
         print("아니 검색 브랜드 뭔데:",input5)
+        print("아니 검색 가격이 얼만데:", input6)
         print("아니 검색 상황이 뭔데:",input7)
         print("아니 검색 조건이 뭔데:", input9)
         print("아니 검색 태그가 뭔데:",input8)
@@ -417,6 +453,8 @@ def createform1(request):  # 리액트용
             filters &= Q(gender__icontains=input1)
         if input2:
             filters &= Q(part__icontains=input2)
+        if input_age:
+            filters &= Q(age__icontains=input_age)
         if input3:
             color1 = []
             for q in input3:
@@ -476,7 +514,8 @@ def createform1(request):  # 리액트용
                 print("몇점올랐는데:",len(matching_tags))
             #filters &= Q(score__gte = 1)
             filters &= ~Q(score=0)
-
+            
+        #users = User.objects.filter(filters).exclude(score=None).order_by('-score')
         users = User.objects.filter(filters).order_by('-score')
         '''if input2 == None:
             input2 = users.first().part
