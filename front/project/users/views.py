@@ -11,6 +11,7 @@ from neo4j import GraphDatabase
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 import re
+from django.shortcuts import get_object_or_404
 
 def home1(request):
     return render(request, 'folder/base.html')
@@ -347,6 +348,7 @@ def createform(request):
     
     aaa = User.objects.all()
     aaa.update(score=0)
+
     
     if button_value == 'E':   # expert
         return render(request, 'folder/searchreal.html', {'users': dataexpert_total1})#dataexpert
@@ -569,27 +571,28 @@ def createform1(request):  # 리액트용
                     WITH a,f
                     MATCH (f)-[link:link]-(e:Node)
                     WHERE e <> a
-                    RETURN e.name
+                    RETURN e.name, f.season
                     """
                 a = 1
             else: # 아이템이 중복일 때. 즉, 연결된 set가 여러개일 때.
                 q = f"""
-                    MATCH (a:Node {{name: {gdbsearch}}})-[link:link]-(b:Set)
-                    WHERE ANY(season IN b.season WHERE season IN {compare_season})
-                    WITH a, b
-                    ORDER BY b.view ASC
+                    MATCH (a:Node {{name: {gdbsearch}}})-[link:link]-(f:Set)
+                    WHERE ANY(season IN f.season WHERE season IN {compare_season})
+                    WITH a, f
+                    ORDER BY f.view ASC
                     LIMIT 1
-                    SET b.view = b.view + 1
-                    WITH a, b
-                    MATCH (b)-[link:link]-(e:Node)
+                    SET f.view = f.view + 1
+                    WITH a, f
+                    MATCH (f)-[link:link]-(e:Node)
                     WHERE e <> a
-                    RETURN e.name
+                    RETURN e.name, f.season
                     """  
                 a = 2    
             results = session.run(q)
             result = list(results)
             names = [record['e.name'] for record in result]
-
+            setnum = [record['f.season'] for record in result]
+            print("세트 계절들이 뭐야 : ", setnum)
             users1 = User.objects.filter(id__in=names, part__icontains="상의")[:1]  # 1개 넣은건 newbie용 확인용 나중에 3으로 교체
             users2 = User.objects.filter(id__in=names, part__icontains="하의")[:1]
             users3 = User.objects.filter(id__in=names, part__icontains="신발")[:1]
@@ -634,7 +637,7 @@ def createform1(request):  # 리액트용
         datanewbie_total1 = remove_duplicates(datanewbie_total1, key=lambda x: x['id'])
         dataexpert_total1 = datasearch + dataexpert_total
         dataexpert_total1 = remove_duplicates(dataexpert_total1, key=lambda x: x['id'])   
-        #print("익스퍼트 토탈좀 보자: ", dataexpert_total)
+        print("익스퍼트 토탈좀 보자: ", dataexpert_total)
         #print("serach좀 보자 : ", datasearch)
         aaa.update(score=0)
         if button_value == 'E':   # expert
@@ -651,7 +654,11 @@ def inter(request):  # 리액트용
     if request.method == 'POST':
         interid = request.data.get('userId')
         print(interid)
-        
+        season = []
+        user_instance = get_object_or_404(User, id=interid)
+        # 해당 인스턴스의 season 값을 가져옴
+        season = user_instance.season
+        print("추천 season이 뭐누:", season)
         driver = GraphDatabase.driver(
             'neo4j+s://9ff7bd23.databases.neo4j.io', auth=('neo4j', '123456789'))
         session = driver.session()
@@ -667,30 +674,32 @@ def inter(request):  # 리액트용
                 WITH collect(c) AS nodes
                 UNWIND nodes AS c
                 MATCH (c)-[link:link]-(d:Set)
-                WITH d
-                ORDER BY d.view ASC
+                WHERE ANY(season IN d.season WHERE season IN {season})
+                WITH DISTINCT d AS f
+                ORDER BY f.view ASC
                 LIMIT 1
-                SET d.view = d.view + 1
-                WITH d
-                MATCH (d)-[link:link]-(e:Node)
-                RETURN e.name, d.set
+                SET f.view = f.view + 1
+                WITH f
+                MATCH (f)-[link:link]-(e:Node)
+                RETURN e.name, f.set
                 """
         else: # 아이템이 중복일 때. 즉, 연결된 set가 여러개일 때.
             q = f"""
-                MATCH (a:Node {{name: {interid}}})-[link:link]-(d:Set)
-                WITH a, d
-                ORDER BY d.view ASC
+                MATCH (a:Node {{name: {interid}}})-[link:link]-(f:Set)
+                WHERE ANY(season IN f.season WHERE season IN {season})
+                WITH a, f
+                ORDER BY f.view ASC
                 LIMIT 1
-                SET d.view = d.view + 1
-                WITH a, d
-                MATCH (d)-[link:link]-(e:Node)
-                RETURN e.name, d.set
+                SET f.view = f.view + 1
+                WITH a, f
+                MATCH (f)-[link:link]-(e:Node)
+                RETURN e.name, f.set
                 """  
         results = session.run(q)
         result = list(results)
         
         names = [record.get('e.name') for record in result]
-        setnum_total = [record.get('d.set') for record in result]
+        setnum_total = [record.get('f.set') for record in result]
         setnum = list(set(setnum_total))
         print("setnum:",setnum)
         print(names)
